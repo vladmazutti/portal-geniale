@@ -87,7 +87,6 @@ def gerar_planilha():
     ws.delete_rows(1, ws.max_row)
 
     cabecalhos = [""] * 65
-
     cabecalhos[1] = "CNPJ/CPF"
     cabecalhos[2] = "Razão Social"
     cabecalhos[17] = "Website"
@@ -131,68 +130,132 @@ def home():
 
     existe_planilha = os.path.exists(ARQUIVO_PRONTO)
 
-    status = "Planilha disponível para download." if existe_planilha else "Planilha ainda não foi gerada."
+    status = "Disponível para download" if existe_planilha else "Ainda não gerada"
+    status_cor = "#198754" if existe_planilha else "#dc3545"
 
     return f"""
     <html>
-
     <head>
         <title>Portal Geniale</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
 
     <body style="
-        font-family:Arial;
-        background-color:#f4f4f4;
-        text-align:center;
-        padding-top:100px;
+        margin:0;
+        font-family:Arial, sans-serif;
+        background:linear-gradient(135deg, #0d6efd, #0b2c66);
+        min-height:100vh;
+        display:flex;
+        align-items:center;
+        justify-content:center;
     ">
 
-        <h1 style="font-size:40px;">
-            Portal Geniale
-        </h1>
+        <div style="
+            background:white;
+            width:90%;
+            max-width:520px;
+            border-radius:22px;
+            padding:42px 36px;
+            box-shadow:0 20px 45px rgba(0,0,0,0.25);
+            text-align:center;
+        ">
 
-        <p style="font-size:20px;">
-            Relatórios Automatizados
-        </p>
-
-        <p style="font-size:16px;color:#555;">
-            {status}
-        </p>
-
-        <br><br>
-
-        <a href="/baixar">
-            <button style="
-                font-size:24px;
-                padding:20px 40px;
-                background-color:#0d6efd;
-                color:white;
-                border:none;
-                border-radius:10px;
-                cursor:pointer;
+            <div style="
+                font-size:14px;
+                letter-spacing:2px;
+                color:#6c757d;
+                font-weight:bold;
+                margin-bottom:12px;
             ">
-                Baixar Planilha
-            </button>
-        </a>
+                GENIALE
+            </div>
 
-        <br><br>
-
-        <a href="/atualizar">
-            <button style="
-                font-size:20px;
-                padding:15px 30px;
-                background-color:#198754;
-                color:white;
-                border:none;
-                border-radius:10px;
-                cursor:pointer;
+            <h1 style="
+                margin:0;
+                font-size:34px;
+                color:#1f2937;
             ">
-                Atualizar Agora
-            </button>
-        </a>
+                Portal de Relatórios
+            </h1>
+
+            <p style="
+                font-size:17px;
+                color:#6c757d;
+                margin-top:12px;
+                margin-bottom:28px;
+            ">
+                Planilhas automatizadas integradas ao OMIE
+            </p>
+
+            <div style="
+                background:#f8f9fa;
+                border:1px solid #e9ecef;
+                border-radius:14px;
+                padding:16px;
+                margin-bottom:28px;
+            ">
+                <div style="
+                    font-size:13px;
+                    color:#6c757d;
+                    margin-bottom:6px;
+                ">
+                    Status da planilha
+                </div>
+
+                <div style="
+                    font-size:18px;
+                    color:{status_cor};
+                    font-weight:bold;
+                ">
+                    {status}
+                </div>
+            </div>
+
+            <a href="/baixar" style="text-decoration:none;">
+                <button style="
+                    width:100%;
+                    font-size:20px;
+                    padding:18px 24px;
+                    background-color:#0d6efd;
+                    color:white;
+                    border:none;
+                    border-radius:14px;
+                    cursor:pointer;
+                    font-weight:bold;
+                    margin-bottom:14px;
+                ">
+                    Baixar Planilha
+                </button>
+            </a>
+
+            <a href="/atualizar" style="text-decoration:none;">
+                <button style="
+                    width:100%;
+                    font-size:17px;
+                    padding:15px 24px;
+                    background-color:#198754;
+                    color:white;
+                    border:none;
+                    border-radius:14px;
+                    cursor:pointer;
+                    font-weight:bold;
+                ">
+                    Atualizar Agora
+                </button>
+            </a>
+
+            <p style="
+                font-size:12px;
+                color:#adb5bd;
+                margin-top:26px;
+                margin-bottom:0;
+            ">
+                Atualização automática a cada 1 hora
+            </p>
+
+        </div>
 
     </body>
-
     </html>
     """
 
@@ -230,13 +293,67 @@ def atualizar():
     gerar_planilha()
 
     return """
-    <h1>Planilha atualizada com sucesso!</h1>
+    <html>
+    <head>
+        <title>Planilha Atualizada</title>
+    </head>
 
-    <br><br>
+    <body style="
+        margin:0;
+        font-family:Arial, sans-serif;
+        background:linear-gradient(135deg, #198754, #0f5132);
+        min-height:100vh;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+    ">
 
-    <a href="/">
-        Voltar
-    </a>
+        <div style="
+            background:white;
+            width:90%;
+            max-width:480px;
+            border-radius:22px;
+            padding:42px 36px;
+            box-shadow:0 20px 45px rgba(0,0,0,0.25);
+            text-align:center;
+        ">
+
+            <h1 style="
+                color:#198754;
+                font-size:32px;
+                margin-bottom:12px;
+            ">
+                Planilha atualizada com sucesso!
+            </h1>
+
+            <p style="
+                color:#6c757d;
+                font-size:16px;
+                margin-bottom:28px;
+            ">
+                A versão mais recente já está disponível para download.
+            </p>
+
+            <a href="/" style="text-decoration:none;">
+                <button style="
+                    width:100%;
+                    font-size:18px;
+                    padding:16px 24px;
+                    background-color:#0d6efd;
+                    color:white;
+                    border:none;
+                    border-radius:14px;
+                    cursor:pointer;
+                    font-weight:bold;
+                ">
+                    Voltar ao Portal
+                </button>
+            </a>
+
+        </div>
+
+    </body>
+    </html>
     """
 
 
