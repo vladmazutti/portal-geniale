@@ -21,13 +21,13 @@ def gerar_planilha():
     app_key = "2543276123388"
     app_secret = "cd84271c41f00486e438191c09b49522"
 
-    url = "https://app.omie.com.br/api/v1/geral/clientes/"
-
     linhas = []
     pagina = 1
     total_paginas = 1
 
     while pagina <= total_paginas:
+
+        url = "https://app.omie.com.br/api/v1/geral/clientes/"
 
         payload = {
             "call": "ListarClientes",
@@ -54,7 +54,6 @@ def gerar_planilha():
         dados = response.json()
 
         total_paginas = dados.get("total_de_paginas", 1)
-
         clientes = dados.get("clientes_cadastro", [])
 
         print(f"Página {pagina} carregada...")
@@ -76,14 +75,12 @@ def gerar_planilha():
             linhas.append(linha)
 
         pagina += 1
-
         time.sleep(0.2)
 
     wb = load_workbook("modelo.xlsx")
     ws = wb["BASE OMIE"]
 
     ws.sheet_state = "veryHidden"
-
     ws.delete_rows(1, ws.max_row)
 
     cabecalhos = [""] * 65
@@ -106,6 +103,7 @@ def gerar_planilha():
 
     print("Planilha atualizada com sucesso!")
 
+
 # ====================================
 # AGENDADOR AUTOMÁTICO
 # ====================================
@@ -114,11 +112,12 @@ scheduler = BackgroundScheduler()
 
 scheduler.add_job(
     gerar_planilha,
-    'interval',
+    "interval",
     hours=1
 )
 
 scheduler.start()
+
 
 # ====================================
 # PÁGINA INICIAL
@@ -127,7 +126,11 @@ scheduler.start()
 @app.route("/")
 def home():
 
-    return """
+    existe_planilha = os.path.exists(ARQUIVO_PRONTO)
+
+    status = "Planilha disponível para download." if existe_planilha else "Planilha ainda não foi gerada."
+
+    return f"""
     <html>
 
     <head>
@@ -147,6 +150,10 @@ def home():
 
         <p style="font-size:20px;">
             Relatórios Automatizados
+        </p>
+
+        <p style="font-size:16px;color:#555;">
+            {status}
         </p>
 
         <br><br>
@@ -186,6 +193,7 @@ def home():
     </html>
     """
 
+
 # ====================================
 # DOWNLOAD
 # ====================================
@@ -194,7 +202,11 @@ def home():
 def baixar():
 
     if not os.path.exists(ARQUIVO_PRONTO):
-        return "A planilha ainda não foi gerada."
+        return """
+        <h1>A planilha ainda não foi gerada.</h1>
+        <p>Clique em "Atualizar Agora" para gerar a primeira versão.</p>
+        <a href="/">Voltar</a>
+        """
 
     data_hoje = datetime.now().strftime("%d%m%y")
 
@@ -203,6 +215,7 @@ def baixar():
         as_attachment=True,
         download_name=f"Pagamentos{data_hoje}.xlsx"
     )
+
 
 # ====================================
 # ATUALIZAR MANUALMENTE
@@ -223,12 +236,6 @@ def atualizar():
     </a>
     """
 
-# ====================================
-# PRIMEIRA GERAÇÃO
-# ====================================
-
-if not os.path.exists(ARQUIVO_PRONTO):
-    gerar_planilha()
 
 # ====================================
 # SERVIDOR LOCAL
