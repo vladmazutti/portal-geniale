@@ -9,13 +9,10 @@ import os
 app = Flask(__name__)
 
 ARQUIVO_PRONTO = "planilha_pronta.xlsx"
+ARQUIVO_ATUALIZACAO = "ultima_atualizacao.txt"
 
-# ====================================
-# GERAR PLANILHA
-# ====================================
 
 def gerar_planilha():
-
     print("Iniciando atualização da planilha...")
 
     app_key = os.getenv("OMIE_APP_KEY")
@@ -29,7 +26,6 @@ def gerar_planilha():
     total_paginas = 1
 
     while pagina <= total_paginas:
-
         url = "https://app.omie.com.br/api/v1/geral/clientes/"
 
         payload = {
@@ -53,7 +49,6 @@ def gerar_planilha():
             continue
 
         response.raise_for_status()
-
         dados = response.json()
 
         total_paginas = dados.get("total_de_paginas", 1)
@@ -62,7 +57,6 @@ def gerar_planilha():
         print(f"Página {pagina} carregada...")
 
         for cliente in clientes:
-
             linha = [""] * 65
             dados_bancarios = cliente.get("dadosBancarios", {})
 
@@ -103,35 +97,30 @@ def gerar_planilha():
 
     wb.save(ARQUIVO_PRONTO)
 
+    agora = datetime.now().strftime("%d/%m/%Y %H:%M")
+    with open(ARQUIVO_ATUALIZACAO, "w", encoding="utf-8") as f:
+        f.write(agora)
+
     print("Planilha atualizada com sucesso!")
 
 
-# ====================================
-# AGENDADOR AUTOMÁTICO
-# ====================================
-
 scheduler = BackgroundScheduler()
-
-scheduler.add_job(
-    gerar_planilha,
-    "interval",
-    hours=1
-)
-
+scheduler.add_job(gerar_planilha, "interval", hours=1)
 scheduler.start()
 
 
-# ====================================
-# PÁGINA INICIAL
-# ====================================
-
 @app.route("/")
 def home():
-
     existe_planilha = os.path.exists(ARQUIVO_PRONTO)
 
+    if os.path.exists(ARQUIVO_ATUALIZACAO):
+        with open(ARQUIVO_ATUALIZACAO, "r", encoding="utf-8") as f:
+            ultima_atualizacao = f.read()
+    else:
+        ultima_atualizacao = "Ainda não atualizada"
+
     status = "Disponível para download" if existe_planilha else "Ainda não gerada"
-    status_cor = "#198754" if existe_planilha else "#dc3545"
+    status_cor = "#1f9d45" if existe_planilha else "#dc3545"
 
     return f"""
     <html>
@@ -143,130 +132,193 @@ def home():
     <body style="
         margin:0;
         font-family:Arial, sans-serif;
-        background:linear-gradient(135deg, #0d6efd, #0b2c66);
-        min-height:100vh;
-        display:flex;
-        align-items:center;
-        justify-content:center;
+        background:#f5f5f5;
+        color:#1f1f1f;
     ">
 
-        <div style="
-            background:white;
-            width:90%;
-            max-width:520px;
-            border-radius:22px;
-            padding:42px 36px;
-            box-shadow:0 20px 45px rgba(0,0,0,0.25);
+        <div style="height:8px;background:#ff8a00;"></div>
+
+        <main style="
+            min-height:calc(100vh - 180px);
+            padding:48px 20px;
             text-align:center;
         ">
 
-            <div style="
-                font-size:14px;
-                letter-spacing:2px;
-                color:#6c757d;
-                font-weight:bold;
-                margin-bottom:12px;
+            <img src="/static/logo.png" style="
+                width:230px;
+                max-width:80%;
+                margin-bottom:30px;
             ">
-                GENIALE
-            </div>
 
             <h1 style="
+                font-size:44px;
                 margin:0;
-                font-size:34px;
-                color:#1f2937;
+                font-weight:800;
             ">
-                Portal de Relatórios
+                Portal de <span style="color:#ff8a00;">Relatórios</span>
             </h1>
 
             <p style="
-                font-size:17px;
-                color:#6c757d;
+                font-size:19px;
+                color:#555;
                 margin-top:12px;
-                margin-bottom:28px;
+                margin-bottom:34px;
             ">
                 Planilhas automatizadas integradas ao OMIE
             </p>
 
             <div style="
-                background:#f8f9fa;
-                border:1px solid #e9ecef;
-                border-radius:14px;
-                padding:16px;
-                margin-bottom:28px;
+                width:90%;
+                max-width:760px;
+                margin:0 auto;
+                background:white;
+                border-radius:22px;
+                padding:38px 34px;
+                box-shadow:0 16px 40px rgba(0,0,0,0.12);
+                border:1px solid #e8e8e8;
             ">
+
+                <div style="
+                    font-size:46px;
+                    color:#ff8a00;
+                    margin-bottom:14px;
+                ">
+                    📄
+                </div>
+
                 <div style="
                     font-size:13px;
-                    color:#6c757d;
-                    margin-bottom:6px;
+                    color:#777;
+                    letter-spacing:1.5px;
+                    font-weight:bold;
+                    text-transform:uppercase;
                 ">
                     Status da planilha
                 </div>
 
                 <div style="
-                    font-size:18px;
+                    font-size:25px;
                     color:{status_cor};
-                    font-weight:bold;
+                    font-weight:800;
+                    margin-top:10px;
                 ">
                     {status}
                 </div>
+
+                <p style="
+                    color:#666;
+                    font-size:15px;
+                    margin-top:10px;
+                    margin-bottom:32px;
+                ">
+                    Última atualização: <span style="color:#ff8a00;font-weight:bold;">{ultima_atualizacao}</span>
+                </p>
+
+                <a href="/baixar" style="text-decoration:none;">
+                    <button style="
+                        width:100%;
+                        max-width:560px;
+                        font-size:22px;
+                        padding:22px 26px;
+                        background:#1f1f1f;
+                        color:white;
+                        border:none;
+                        border-radius:14px;
+                        cursor:pointer;
+                        font-weight:bold;
+                        box-shadow:0 12px 24px rgba(0,0,0,0.22);
+                        margin-bottom:18px;
+                    ">
+                        ⬇️ Baixar Planilha
+                    </button>
+                </a>
+
+                <a href="/atualizar" style="text-decoration:none;">
+                    <button style="
+                        width:100%;
+                        max-width:560px;
+                        font-size:21px;
+                        padding:20px 26px;
+                        background:#ff8a00;
+                        color:white;
+                        border:none;
+                        border-radius:14px;
+                        cursor:pointer;
+                        font-weight:bold;
+                        box-shadow:0 12px 24px rgba(255,138,0,0.28);
+                    ">
+                        🔄 Atualizar Agora
+                    </button>
+                </a>
+
             </div>
 
-            <a href="/baixar" style="text-decoration:none;">
-                <button style="
-                    width:100%;
-                    font-size:20px;
-                    padding:18px 24px;
-                    background-color:#0d6efd;
-                    color:white;
-                    border:none;
-                    border-radius:14px;
-                    cursor:pointer;
-                    font-weight:bold;
-                    margin-bottom:14px;
-                ">
-                    Baixar Planilha
-                </button>
-            </a>
-
-            <a href="/atualizar" style="text-decoration:none;">
-                <button style="
-                    width:100%;
-                    font-size:17px;
-                    padding:15px 24px;
-                    background-color:#198754;
-                    color:white;
-                    border:none;
-                    border-radius:14px;
-                    cursor:pointer;
-                    font-weight:bold;
-                ">
-                    Atualizar Agora
-                </button>
-            </a>
-
-            <p style="
-                font-size:12px;
-                color:#adb5bd;
-                margin-top:26px;
-                margin-bottom:0;
+            <div style="
+                width:90%;
+                max-width:760px;
+                margin:26px auto 0;
+                display:grid;
+                grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+                background:white;
+                border-radius:18px;
+                border:1px solid #e8e8e8;
+                overflow:hidden;
+                box-shadow:0 10px 28px rgba(0,0,0,0.08);
             ">
-                Atualização automática a cada 1 hora
+
+                <div style="padding:24px;">
+                    <div style="font-size:32px;color:#ff8a00;">⏱️</div>
+                    <strong>Atualização Automática</strong>
+                    <p style="color:#666;margin-bottom:0;">A cada 1 hora</p>
+                </div>
+
+                <div style="padding:24px;border-left:1px solid #eee;border-right:1px solid #eee;">
+                    <div style="font-size:32px;color:#ff8a00;">🛡️</div>
+                    <strong>Dados Seguros</strong>
+                    <p style="color:#666;margin-bottom:0;">Integração direta com OMIE</p>
+                </div>
+
+                <div style="padding:24px;">
+                    <div style="font-size:32px;color:#ff8a00;">⚡</div>
+                    <strong>Rápido e Prático</strong>
+                    <p style="color:#666;margin-bottom:0;">Download da última versão</p>
+                </div>
+
+            </div>
+
+        </main>
+
+        <footer style="
+            background:#1f1f1f;
+            color:white;
+            padding:36px 20px;
+            border-top:6px solid #ff8a00;
+            text-align:center;
+        ">
+            <img src="/static/logo.png" style="
+                width:150px;
+                background:white;
+                padding:8px;
+                border-radius:12px;
+                margin-bottom:16px;
+            ">
+
+            <p style="font-size:17px;font-weight:bold;margin:8px 0;">
+                Geniale Promoção Eventos e Merchandising
             </p>
 
-        </div>
+            <p style="color:#cfcfcf;margin:0;">
+                Transformamos ideias em experiências que geram resultados.
+            </p>
+        </footer>
 
     </body>
     </html>
     """
 
 
-# ====================================
-# DOWNLOAD
-# ====================================
-
 @app.route("/baixar")
 def baixar():
-
     if not os.path.exists(ARQUIVO_PRONTO):
         return """
         <h1>A planilha ainda não foi gerada.</h1>
@@ -283,13 +335,8 @@ def baixar():
     )
 
 
-# ====================================
-# ATUALIZAR MANUALMENTE
-# ====================================
-
 @app.route("/atualizar")
 def atualizar():
-
     gerar_planilha()
 
     return """
@@ -301,25 +348,32 @@ def atualizar():
     <body style="
         margin:0;
         font-family:Arial, sans-serif;
-        background:linear-gradient(135deg, #198754, #0f5132);
+        background:#f5f5f5;
         min-height:100vh;
         display:flex;
         align-items:center;
         justify-content:center;
+        text-align:center;
     ">
 
         <div style="
             background:white;
             width:90%;
-            max-width:480px;
+            max-width:500px;
             border-radius:22px;
             padding:42px 36px;
-            box-shadow:0 20px 45px rgba(0,0,0,0.25);
-            text-align:center;
+            box-shadow:0 18px 40px rgba(0,0,0,0.16);
+            border:1px solid #e8e8e8;
         ">
 
+            <img src="/static/logo.png" style="
+                width:190px;
+                max-width:80%;
+                margin-bottom:22px;
+            ">
+
             <h1 style="
-                color:#198754;
+                color:#ff8a00;
                 font-size:32px;
                 margin-bottom:12px;
             ">
@@ -327,7 +381,7 @@ def atualizar():
             </h1>
 
             <p style="
-                color:#6c757d;
+                color:#666;
                 font-size:16px;
                 margin-bottom:28px;
             ">
@@ -339,7 +393,7 @@ def atualizar():
                     width:100%;
                     font-size:18px;
                     padding:16px 24px;
-                    background-color:#0d6efd;
+                    background:#1f1f1f;
                     color:white;
                     border:none;
                     border-radius:14px;
@@ -356,10 +410,6 @@ def atualizar():
     </html>
     """
 
-
-# ====================================
-# SERVIDOR LOCAL
-# ====================================
 
 if __name__ == "__main__":
     app.run(debug=True)
