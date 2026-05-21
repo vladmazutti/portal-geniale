@@ -1,40 +1,27 @@
 from flask import Flask, send_file
 import requests
-import pandas as pd
 from openpyxl import load_workbook
-from openpyxl.utils.dataframe import dataframe_to_rows
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 app = Flask(__name__)
 
-# ====================================
-# PÁGINA INICIAL
-# ====================================
-
 @app.route("/")
 def home():
-
     return """
     <html>
-
     <head>
         <title>Portal Geniale</title>
     </head>
-
     <body style="
         font-family:Arial;
         background-color:#f4f4f4;
         text-align:center;
         padding-top:100px;
     ">
+        <h1 style="font-size:40px;">Portal Geniale</h1>
 
-        <h1 style="font-size:40px;">
-            Portal Geniale
-        </h1>
-
-        <p style="font-size:20px;">
-            Relatórios Automatizados
-        </p>
+        <p style="font-size:20px;">Relatórios Automatizados</p>
 
         <a href="/baixar">
             <button style="
@@ -49,59 +36,76 @@ def home():
                 Planilha de Pagamento
             </button>
         </a>
-
     </body>
-
     </html>
     """
 
-# ====================================
-# DOWNLOAD RELATÓRIO
-# ====================================
+def buscar_pagina(pagina, app_key, app_secret):
+    url = "https://app.omie.com.br/api/v1/geral/clientes/"
+
+    payload = {
+        "call": "ListarClientes",
+        "app_key": app_key,
+        "app_secret": app_secret,
+        "param": [
+            {
+                "pagina": pagina,
+                "registros_por_pagina": 500,
+                "apenas_importado_api": "N"
+            }
+        ]
+    }
+
+    response = requests.post(url, json=payload, timeout=60)
+    response.raise_for_status()
+
+    dados = response.json()
+    clientes = dados.get("clientes_cadastro", [])
+
+    print(f"Página {pagina} carregada...")
+
+    return pagina, clientes, dados.get("total_de_paginas", 1)
 
 @app.route("/baixar")
 def baixar():
 
-    # ====================================
-    # CREDENCIAIS OMIE
-    # ====================================
-
     app_key = "2543276123388"
     app_secret = "cd84271c41f00486e438191c09b49522"
 
-    # ====================================
-    # URL API OMIE
-    # ====================================
-
-    url = "https://app.omie.com.br/api/v1/geral/clientes/"
-
     linhas = []
-    pagina = 1
 
-    while True:
+    # ===============================
+    # 1. BUSCA PRIMEIRA PÁGINA
+    # ===============================
 
-        payload = {
-            "call": "ListarClientes",
-            "app_key": app_key,
-            "app_secret": app_secret,
-            "param": [
-                {
-                    "pagina": pagina,
-                    "registros_por_pagina": 500,
-                    "apenas_importado_api": "N"
-                }
+    pagina, clientes, total_paginas = buscar_pagina(1, app_key, app_secret)
+
+    paginas_resultado = {
+        1: clientes
+    }
+
+    # ===============================
+    # 2. BUSCA DEMAIS PÁGINAS EM PARALELO
+    # ===============================
+
+    if total_paginas > 1:
+        with ThreadPoolExecutor(max_workers=8) as executor:
+            tarefas = [
+                executor.submit(buscar_pagina, p, app_key, app_secret)
+                for p in range(2, total_paginas + 1)
             ]
-        }
 
-        response = requests.post(url, json=payload)
-        dados = response.json()
+            for tarefa in as_completed(tarefas):
+                pagina, clientes, _ = tarefa.result()
+                paginas_resultado[pagina] = clientes
 
-        clientes = dados.get("clientes_cadastro", [])
+    # ===============================
+    # 3. MONTA LINHAS NA ORDEM CERTA
+    # ===============================
 
-        if not clientes:
-            break
+    for pagina in sorted(paginas_resultado.keys()):
 
-        for cliente in clientes:
+        for cliente in paginas_resultado[pagina]:
 
             linha = [""] * 65
             dados_bancarios = cliente.get("dadosBancarios", {})
@@ -117,16 +121,19 @@ def baixar():
 
             linhas.append(linha)
 
-        print(f"Página {pagina} carregada...")
-        pagina += 1
-
-    df = pd.DataFrame(linhas)
+    # ===============================
+    # 4. ABRE MODELO
+    # ===============================
 
     wb = load_workbook("modelo.xlsx")
     ws = wb["BASE OMIE"]
 
     ws.sheet_state = "veryHidden"
     ws.delete_rows(1, ws.max_row)
+
+    # ===============================
+    # 5. CABEÇALHOS
+    # ===============================
 
     cabecalhos = [""] * 65
     cabecalhos[1] = "CNPJ/CPF"
@@ -140,8 +147,16 @@ def baixar():
 
     ws.append(cabecalhos)
 
-    for row in dataframe_to_rows(df, index=False, header=False):
-        ws.append(row)
+    # ===============================
+    # 6. COLA DADOS
+    # ===============================
+
+    for linha in linhas:
+        ws.append(linha)
+
+    # ===============================
+    # 7. SALVA ARQUIVO
+    # ===============================
 
     data_hoje = datetime.now().strftime("%d%m%y")
     arquivo_final = f"Pagamentos{data_hoje}.xlsx"
@@ -153,10 +168,6 @@ def baixar():
         as_attachment=True,
         download_name=arquivo_final
     )
-
-# ====================================
-# INICIAR SERVIDOR LOCAL
-# ====================================
 
 if __name__ == "__main__":
     app.run(debug=True)
