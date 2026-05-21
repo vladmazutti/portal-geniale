@@ -18,8 +18,11 @@ def gerar_planilha():
 
     print("Iniciando atualização da planilha...")
 
-    app_key = "2543276123388"
-    app_secret = "cd84271c41f00486e438191c09b49522"
+    app_key = os.getenv("OMIE_APP_KEY")
+    app_secret = os.getenv("OMIE_APP_SECRET")
+
+    if not app_key or not app_secret:
+        raise Exception("Credenciais OMIE não configuradas nas variáveis do Railway.")
 
     linhas = []
     pagina = 1
