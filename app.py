@@ -95,6 +95,13 @@ def definir_status(tipo, status):
     escrever_arquivo(config["arquivo_status"], status)
 
 
+def obter_ultima_atualizacao(config):
+    return ler_arquivo(
+        config["arquivo_atualizacao"],
+        "Ainda não atualizada"
+    )
+
+
 def obter_status(tipo, config):
     status_interno = ler_arquivo(config["arquivo_status"], "")
 
@@ -122,13 +129,6 @@ def obter_status(tipo, config):
         "existe": existe,
         "ultima": obter_ultima_atualizacao(config),
     }
-
-
-def obter_ultima_atualizacao(config):
-    return ler_arquivo(
-        config["arquivo_atualizacao"],
-        "Ainda não atualizada"
-    )
 
 
 def montar_relatorios_para_tela():
@@ -236,6 +236,20 @@ def buscar_clientes_omie(app_key, app_secret):
     return linhas
 
 
+def salvar_workbook_com_segurança(wb, arquivo_final):
+    arquivo_temporario = f"{arquivo_final}.tmp.xlsx"
+
+    if os.path.exists(arquivo_temporario):
+        os.remove(arquivo_temporario)
+
+    wb.save(arquivo_temporario)
+
+    if not os.path.exists(arquivo_temporario):
+        raise Exception("Arquivo temporário não foi gerado corretamente.")
+
+    os.replace(arquivo_temporario, arquivo_final)
+
+
 def gerar_planilha(tipo):
     if tipo not in RELATORIOS:
         raise Exception("Relatório inválido.")
@@ -282,7 +296,10 @@ def gerar_planilha(tipo):
     for linha in linhas:
         ws.append(linha)
 
-    wb.save(config["arquivo_pronto"])
+    salvar_workbook_com_segurança(
+        wb,
+        config["arquivo_pronto"]
+    )
 
     escrever_arquivo(
         config["arquivo_atualizacao"],
