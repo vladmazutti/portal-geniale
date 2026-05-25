@@ -19,9 +19,9 @@ FUSO_BRASIL = ZoneInfo("America/Sao_Paulo")
 LOG_DIR = "logs"
 
 OMIE_REGISTROS_POR_PAGINA = 1000
-OMIE_TENTATIVA_MAXIMA = 3
+OMIE_TENTATIVA_MAXIMA = 5
 OMIE_TIMEOUT = 90
-OMIE_MAX_WORKERS = 8
+OMIE_MAX_WORKERS = 4
 
 jobs_em_execucao = {}
 jobs_lock = Lock()
@@ -98,7 +98,6 @@ def data_arquivo():
 
 def formatar_duracao(segundos):
     segundos = int(segundos)
-
     minutos = segundos // 60
     segundos_restantes = segundos % 60
 
@@ -278,7 +277,7 @@ def buscar_pagina_omie(
             )
 
             if response.status_code == 429:
-                espera = tentativa * 8
+                espera = tentativa * 15
 
                 print(
                     f"Limite OMIE atingido na página {pagina}. "
@@ -294,7 +293,7 @@ def buscar_pagina_omie(
             return response.json()
 
         except Timeout:
-            espera = tentativa * 6
+            espera = tentativa * 8
 
             print(
                 f"Timeout na página {pagina}. "
@@ -305,7 +304,7 @@ def buscar_pagina_omie(
             time.sleep(espera)
 
         except RequestException as erro:
-            espera = tentativa * 6
+            espera = tentativa * 8
 
             print(
                 f"Erro de conexão na página {pagina}: {erro}. "
