@@ -194,6 +194,19 @@
 
                     </div>
 
+                    <div class="log-area">
+
+                        <div class="log-title">
+                            Último processamento
+                        </div>
+
+                        <pre
+                            class="log-box"
+                            id="log-box-{{ relatorio.tipo }}"
+                        >{{ relatorio.status.ultimo_log }}</pre>
+
+                    </div>
+
                     <div class="buttons">
 
                         {% if relatorio.restrito %}
@@ -396,6 +409,7 @@
                     const updateDate = document.getElementById(`update-date-${tipo}`);
                     const updateBtn = document.getElementById(`update-btn-${tipo}`);
                     const downloadBtn = document.getElementById(`download-btn-${tipo}`);
+                    const logBox = document.getElementById(`log-box-${tipo}`);
 
                     if (!card || !statusTexto || !statusDot || !updateDate || !updateBtn) {
                         return;
@@ -403,6 +417,10 @@
 
                     statusTexto.innerText = status.texto;
                     updateDate.innerText = status.ultima;
+
+                    if (logBox) {
+                        logBox.innerText = status.ultimo_log;
+                    }
 
                     statusDot.className = `status-dot ${status.cor}`;
 
