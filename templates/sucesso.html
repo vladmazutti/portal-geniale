@@ -2,7 +2,6 @@
 <html lang="pt-br">
 
 <head>
-
     <meta charset="UTF-8">
 
     <meta
@@ -10,13 +9,12 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Atualização Concluída</title>
+    <title>Atualização Iniciada</title>
 
     <link
         rel="stylesheet"
         href="{{ url_for('static', filename='style.css') }}"
     >
-
 </head>
 
 <body class="center-page">
@@ -28,11 +26,11 @@
         <div class="success-card">
 
             <div class="success-icon">
-                ✅
+                🔄
             </div>
 
             <div class="success-title">
-                RELATÓRIO ATUALIZADO
+                ATUALIZAÇÃO INICIADA
             </div>
 
             <div class="success-subtitle">
@@ -40,18 +38,16 @@
             </div>
 
             <div class="success-description">
-
-                A versão mais recente do relatório já está disponível
-                para download no portal.
-
+                {{ mensagem }}
+                <br><br>
+                A geração continuará em segundo plano. Volte ao portal e aguarde o status mudar para
+                <strong>Disponível para download</strong>.
             </div>
 
             <a href="/">
-
                 <button class="btn btn-dark success-button">
                     VOLTAR AO PORTAL
                 </button>
-
             </a>
 
         </div>
