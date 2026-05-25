@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Acesso Restrito</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+</head>
+
+<body class="center-page">
+
+    <div class="auth-container">
+
+        <div class="auth-glow"></div>
+
+        <div class="auth-card">
+
+            <div class="auth-header">
+
+                <div class="auth-icon">
+                    🔒
+                </div>
+
+                <div>
+
+                    <div class="auth-title">
+                        ACESSO RESTRITO
+                    </div>
+
+                    <div class="auth-subtitle">
+                        Consolidadora Financeira
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="auth-description">
+
+                Esta área possui acesso restrito.
+                Informe a senha para baixar o relatório financeiro.
+
+            </div>
+
+            <form method="POST">
+
+                <input
+                    type="password"
+                    name="senha"
+                    placeholder="Digite sua senha"
+                    class="password-input"
+                >
+
+                <button
+                    type="submit"
+                    class="btn btn-dark auth-button"
+                >
+                    BAIXAR RELATÓRIO
+                </button>
+
+            </form>
+
+            {% if erro %}
+
+            <div class="auth-error">
+                {{ erro }}
+            </div>
+
+            {% endif %}
+
+            <a href="/" class="back-link">
+                ← Voltar ao portal
+            </a>
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Atualização Concluída</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+</head>
+
+<body class="center-page">
+
+    <div class="success-container">
+
+        <div class="success-glow"></div>
+
+        <div class="success-card">
+
+            <div class="success-icon">
+                ✅
+            </div>
+
+            <div class="success-title">
+                RELATÓRIO ATUALIZADO
+            </div>
+
+            <div class="success-subtitle">
+                {{ relatorio.nome }}
+            </div>
+
+            <div class="success-description">
+
+                A versão mais recente do relatório já está disponível
+                para download no portal.
+
+            </div>
+
+            <a href="/">
+
+                <button class="btn btn-dark success-button">
+                    VOLTAR AO PORTAL
+                </button>
+
+            </a>
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>
