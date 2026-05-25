@@ -1,15 +1,20 @@
 from flask import Flask, send_file, request, redirect, url_for, render_template
 import requests
+from requests.exceptions import Timeout, RequestException
 from openpyxl import load_workbook
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from apscheduler.schedulers.background import BackgroundScheduler
+from threading import Thread, Lock
 import time
 import os
 
 app = Flask(__name__)
 
 FUSO_BRASIL = ZoneInfo("America/Sao_Paulo")
+
+jobs_em_execucao = {}
+jobs_lock = Lock()
 
 RELATORIOS = {
     "geniale": {
@@ -19,6 +24,7 @@ RELATORIOS = {
         "modelo": "modelo.xlsx",
         "arquivo_pronto": "planilha_geniale.xlsx",
         "arquivo_atualizacao": "ultima_atualizacao_geniale.txt",
+        "arquivo_status": "status_geniale.txt",
         "env_key": "OMIE_APP_KEY",
         "env_secret": "OMIE_APP_SECRET",
         "download_name": "Pagamentos_Geniale",
@@ -33,6 +39,7 @@ RELATORIOS = {
         "modelo": "modelo.xlsx",
         "arquivo_pronto": "planilha_paniz.xlsx",
         "arquivo_atualizacao": "ultima_atualizacao_paniz.txt",
+        "arquivo_status": "status_paniz.txt",
         "env_key": "OMIE_PANIZ_APP_KEY",
         "env_secret": "OMIE_PANIZ_APP_SECRET",
         "download_name": "Pagamentos_Paniz",
@@ -47,6 +54,7 @@ RELATORIOS = {
         "modelo": "modelo_financeiro.xlsx",
         "arquivo_pronto": "planilha_financeiro.xlsx",
         "arquivo_atualizacao": "ultima_atualizacao_financeiro.txt",
+        "arquivo_status": "status_financeiro.txt",
         "env_key": "OMIE_APP_KEY",
         "env_secret": "OMIE_APP_SECRET",
         "download_name": "Consolidadora_Financeiro",
@@ -69,25 +77,58 @@ def data_arquivo():
     return agora_brasil().strftime("%d%m%y")
 
 
-def obter_ultima_atualizacao(config):
-    arquivo = config["arquivo_atualizacao"]
-
-    if os.path.exists(arquivo):
-        with open(arquivo, "r", encoding="utf-8") as f:
-            return f.read()
-
-    return "Ainda não atualizada"
+def escrever_arquivo(caminho, conteudo):
+    with open(caminho, "w", encoding="utf-8") as f:
+        f.write(conteudo)
 
 
-def status_relatorio(config):
+def ler_arquivo(caminho, padrao=""):
+    if os.path.exists(caminho):
+        with open(caminho, "r", encoding="utf-8") as f:
+            return f.read().strip()
+
+    return padrao
+
+
+def definir_status(tipo, status):
+    config = RELATORIOS[tipo]
+    escrever_arquivo(config["arquivo_status"], status)
+
+
+def obter_status(tipo, config):
+    status_interno = ler_arquivo(config["arquivo_status"], "")
+
+    if status_interno == "atualizando":
+        return {
+            "texto": "Atualizando...",
+            "cor": "atualizando",
+            "existe": os.path.exists(config["arquivo_pronto"]),
+            "ultima": obter_ultima_atualizacao(config),
+        }
+
+    if status_interno.startswith("erro"):
+        return {
+            "texto": "Erro na atualização",
+            "cor": "erro",
+            "existe": os.path.exists(config["arquivo_pronto"]),
+            "ultima": obter_ultima_atualizacao(config),
+        }
+
     existe = os.path.exists(config["arquivo_pronto"])
 
     return {
         "texto": "Disponível para download" if existe else "Ainda não gerada",
-        "cor": "ok" if existe else "erro",
+        "cor": "ok" if existe else "pendente",
         "existe": existe,
         "ultima": obter_ultima_atualizacao(config),
     }
+
+
+def obter_ultima_atualizacao(config):
+    return ler_arquivo(
+        config["arquivo_atualizacao"],
+        "Ainda não atualizada"
+    )
 
 
 def montar_relatorios_para_tela():
@@ -96,10 +137,70 @@ def montar_relatorios_para_tela():
     for tipo, config in RELATORIOS.items():
         item = dict(config)
         item["tipo"] = tipo
-        item["status"] = status_relatorio(config)
+        item["status"] = obter_status(tipo, config)
         lista.append(item)
 
     return lista
+
+
+def buscar_pagina_omie(app_key, app_secret, pagina, tentativa_maxima=3):
+    url = "https://app.omie.com.br/api/v1/geral/clientes/"
+
+    payload = {
+        "call": "ListarClientes",
+        "app_key": app_key,
+        "app_secret": app_secret,
+        "param": [
+            {
+                "pagina": pagina,
+                "registros_por_pagina": 1000,
+                "apenas_importado_api": "N",
+            }
+        ],
+    }
+
+    for tentativa in range(1, tentativa_maxima + 1):
+        try:
+            response = requests.post(
+                url,
+                json=payload,
+                timeout=90
+            )
+
+            if response.status_code == 429:
+                espera = tentativa * 5
+                print(
+                    f"Limite OMIE atingido na página {pagina}. "
+                    f"Aguardando {espera}s..."
+                )
+                time.sleep(espera)
+                continue
+
+            response.raise_for_status()
+            return response.json()
+
+        except Timeout:
+            espera = tentativa * 5
+            print(
+                f"Timeout na página {pagina}. "
+                f"Tentativa {tentativa}/{tentativa_maxima}. "
+                f"Aguardando {espera}s..."
+            )
+            time.sleep(espera)
+
+        except RequestException as erro:
+            espera = tentativa * 5
+            print(
+                f"Erro de conexão na página {pagina}: {erro}. "
+                f"Tentativa {tentativa}/{tentativa_maxima}. "
+                f"Aguardando {espera}s..."
+            )
+            time.sleep(espera)
+
+    raise Exception(
+        f"Falha ao consultar OMIE na página {pagina} "
+        f"após {tentativa_maxima} tentativas."
+    )
 
 
 def buscar_clientes_omie(app_key, app_secret):
@@ -108,35 +209,12 @@ def buscar_clientes_omie(app_key, app_secret):
     total_paginas = 1
 
     while pagina <= total_paginas:
-        url = "https://app.omie.com.br/api/v1/geral/clientes/"
-
-        payload = {
-            "call": "ListarClientes",
-            "app_key": app_key,
-            "app_secret": app_secret,
-            "param": [
-                {
-                    "pagina": pagina,
-                    "registros_por_pagina": 500,
-                    "apenas_importado_api": "N",
-                }
-            ],
-        }
-
-        response = requests.post(url, json=payload, timeout=60)
-
-        if response.status_code == 429:
-            print("Limite da API OMIE atingido. Aguardando...")
-            time.sleep(5)
-            continue
-
-        response.raise_for_status()
-        dados = response.json()
+        dados = buscar_pagina_omie(app_key, app_secret, pagina)
 
         total_paginas = dados.get("total_de_paginas", 1)
         clientes = dados.get("clientes_cadastro", [])
 
-        print(f"Página {pagina} carregada...")
+        print(f"Página {pagina}/{total_paginas} carregada...")
 
         for cliente in clientes:
             linha = [""] * 65
@@ -154,7 +232,6 @@ def buscar_clientes_omie(app_key, app_secret):
             linhas.append(linha)
 
         pagina += 1
-        time.sleep(0.2)
 
     return linhas
 
@@ -207,30 +284,74 @@ def gerar_planilha(tipo):
 
     wb.save(config["arquivo_pronto"])
 
-    with open(config["arquivo_atualizacao"], "w", encoding="utf-8") as f:
-        f.write(agora_formatado())
+    escrever_arquivo(
+        config["arquivo_atualizacao"],
+        agora_formatado()
+    )
 
     print(f"Planilha {config['nome']} atualizada com sucesso!")
+
+
+def executar_atualizacao_background(tipo):
+    try:
+        definir_status(tipo, "atualizando")
+        gerar_planilha(tipo)
+        definir_status(tipo, "ok")
+
+    except Exception as erro:
+        print(f"Erro ao atualizar {tipo}: {erro}")
+        definir_status(tipo, f"erro: {erro}")
+
+    finally:
+        with jobs_lock:
+            jobs_em_execucao[tipo] = False
+
+
+def iniciar_atualizacao_background(tipo):
+    if tipo not in RELATORIOS:
+        raise Exception("Relatório inválido.")
+
+    with jobs_lock:
+        if jobs_em_execucao.get(tipo):
+            return False
+
+        jobs_em_execucao[tipo] = True
+
+    thread = Thread(
+        target=executar_atualizacao_background,
+        args=(tipo,),
+        daemon=True
+    )
+    thread.start()
+
+    return True
+
+
+def atualizar_agendado(tipo):
+    try:
+        iniciar_atualizacao_background(tipo)
+    except Exception as erro:
+        print(f"Erro ao iniciar atualização agendada de {tipo}: {erro}")
 
 
 scheduler = BackgroundScheduler(timezone="America/Sao_Paulo")
 
 scheduler.add_job(
-    lambda: gerar_planilha("geniale"),
+    lambda: atualizar_agendado("geniale"),
     trigger="cron",
     hour=8,
     minute=0,
 )
 
 scheduler.add_job(
-    lambda: gerar_planilha("paniz"),
+    lambda: atualizar_agendado("paniz"),
     trigger="cron",
     hour=8,
     minute=0,
 )
 
 scheduler.add_job(
-    lambda: gerar_planilha("financeiro"),
+    lambda: atualizar_agendado("financeiro"),
     trigger="cron",
     hour="8,12",
     minute=0,
@@ -334,18 +455,30 @@ def atualizar(tipo):
         ), 404
 
     try:
-        gerar_planilha(tipo)
+        iniciado = iniciar_atualizacao_background(tipo)
 
     except Exception as erro:
         return render_template(
             "erro.html",
-            titulo="Erro ao atualizar a planilha.",
+            titulo="Erro ao iniciar atualização.",
             mensagem=str(erro),
+        )
+
+    if iniciado:
+        mensagem = (
+            f"A atualização da planilha {RELATORIOS[tipo]['nome']} "
+            f"foi iniciada em segundo plano."
+        )
+    else:
+        mensagem = (
+            f"A planilha {RELATORIOS[tipo]['nome']} "
+            f"já está sendo atualizada."
         )
 
     return render_template(
         "sucesso.html",
         relatorio=RELATORIOS[tipo],
+        mensagem=mensagem,
     )
 
 
