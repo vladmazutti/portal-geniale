@@ -8,13 +8,18 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from threading import Thread, Lock
 import time
 import os
+import traceback
+
 
 app = Flask(__name__)
 
 FUSO_BRASIL = ZoneInfo("America/Sao_Paulo")
 
+LOG_DIR = "logs"
+
 jobs_em_execucao = {}
 jobs_lock = Lock()
+
 
 RELATORIOS = {
     "geniale": {
@@ -25,6 +30,7 @@ RELATORIOS = {
         "arquivo_pronto": "planilha_geniale.xlsx",
         "arquivo_atualizacao": "ultima_atualizacao_geniale.txt",
         "arquivo_status": "status_geniale.txt",
+        "arquivo_log": "logs/geniale.log",
         "env_key": "OMIE_APP_KEY",
         "env_secret": "OMIE_APP_SECRET",
         "download_name": "Pagamentos_Geniale",
@@ -40,6 +46,7 @@ RELATORIOS = {
         "arquivo_pronto": "planilha_paniz.xlsx",
         "arquivo_atualizacao": "ultima_atualizacao_paniz.txt",
         "arquivo_status": "status_paniz.txt",
+        "arquivo_log": "logs/paniz.log",
         "env_key": "OMIE_PANIZ_APP_KEY",
         "env_secret": "OMIE_PANIZ_APP_SECRET",
         "download_name": "Pagamentos_Paniz",
@@ -55,6 +62,7 @@ RELATORIOS = {
         "arquivo_pronto": "planilha_financeiro.xlsx",
         "arquivo_atualizacao": "ultima_atualizacao_financeiro.txt",
         "arquivo_status": "status_financeiro.txt",
+        "arquivo_log": "logs/financeiro.log",
         "env_key": "OMIE_APP_KEY",
         "env_secret": "OMIE_APP_SECRET",
         "download_name": "Consolidadora_Financeiro",
@@ -63,6 +71,11 @@ RELATORIOS = {
         "classe": "financeiro",
     },
 }
+
+
+def garantir_pasta_logs():
+    if not os.path.exists(LOG_DIR):
+        os.makedirs(LOG_DIR)
 
 
 def agora_brasil():
@@ -77,8 +90,27 @@ def data_arquivo():
     return agora_brasil().strftime("%d%m%y")
 
 
+def formatar_duracao(segundos):
+    segundos = int(segundos)
+
+    minutos = segundos // 60
+    segundos_restantes = segundos % 60
+
+    if minutos <= 0:
+        return f"{segundos_restantes}s"
+
+    return f"{minutos}m {segundos_restantes}s"
+
+
 def escrever_arquivo(caminho, conteudo):
     with open(caminho, "w", encoding="utf-8") as f:
+        f.write(conteudo)
+
+
+def adicionar_ao_arquivo(caminho, conteudo):
+    garantir_pasta_logs()
+
+    with open(caminho, "a", encoding="utf-8") as f:
         f.write(conteudo)
 
 
@@ -102,6 +134,65 @@ def obter_ultima_atualizacao(config):
     )
 
 
+def obter_ultimo_log(config):
+    caminho = config.get("arquivo_log")
+
+    if not caminho or not os.path.exists(caminho):
+        return "Sem histórico de atualização"
+
+    conteudo = ler_arquivo(caminho, "")
+
+    if not conteudo:
+        return "Sem histórico de atualização"
+
+    blocos = conteudo.split("\n\n")
+
+    for bloco in reversed(blocos):
+        bloco = bloco.strip()
+
+        if bloco:
+            return bloco
+
+    return "Sem histórico de atualização"
+
+
+def registrar_log_atualizacao(
+    tipo,
+    status,
+    inicio,
+    fim,
+    registros=0,
+    erro=""
+):
+    config = RELATORIOS[tipo]
+
+    duracao_segundos = (fim - inicio).total_seconds()
+    duracao_formatada = formatar_duracao(duracao_segundos)
+
+    linhas_log = [
+        "============================================================",
+        f"DATA/HORA: {fim.strftime('%d/%m/%Y %H:%M:%S')}",
+        f"RELATÓRIO: {config['nome']}",
+        f"STATUS: {status}",
+        f"INÍCIO: {inicio.strftime('%d/%m/%Y %H:%M:%S')}",
+        f"FIM: {fim.strftime('%d/%m/%Y %H:%M:%S')}",
+        f"DURAÇÃO: {duracao_formatada}",
+        f"REGISTROS OMIE: {registros}",
+    ]
+
+    if erro:
+        linhas_log.append(f"ERRO: {erro}")
+
+    linhas_log.append("============================================================")
+    linhas_log.append("")
+    linhas_log.append("")
+
+    adicionar_ao_arquivo(
+        config["arquivo_log"],
+        "\n".join(linhas_log)
+    )
+
+
 def obter_status(tipo, config):
     status_interno = ler_arquivo(config["arquivo_status"], "")
 
@@ -111,6 +202,7 @@ def obter_status(tipo, config):
             "cor": "atualizando",
             "existe": os.path.exists(config["arquivo_pronto"]),
             "ultima": obter_ultima_atualizacao(config),
+            "ultimo_log": obter_ultimo_log(config),
         }
 
     if status_interno.startswith("erro"):
@@ -119,6 +211,7 @@ def obter_status(tipo, config):
             "cor": "erro",
             "existe": os.path.exists(config["arquivo_pronto"]),
             "ultima": obter_ultima_atualizacao(config),
+            "ultimo_log": obter_ultimo_log(config),
         }
 
     existe = os.path.exists(config["arquivo_pronto"])
@@ -128,6 +221,7 @@ def obter_status(tipo, config):
         "cor": "ok" if existe else "pendente",
         "existe": existe,
         "ultima": obter_ultima_atualizacao(config),
+        "ultimo_log": obter_ultimo_log(config),
     }
 
 
@@ -309,16 +403,48 @@ def gerar_planilha(tipo):
 
     print(f"Planilha {config['nome']} atualizada com sucesso!")
 
+    return len(linhas)
+
 
 def executar_atualizacao_background(tipo):
+    inicio = agora_brasil()
+    registros = 0
+
     try:
         definir_status(tipo, "atualizando")
-        gerar_planilha(tipo)
+
+        registros = gerar_planilha(tipo)
+
         definir_status(tipo, "ok")
 
+        fim = agora_brasil()
+
+        registrar_log_atualizacao(
+            tipo=tipo,
+            status="OK",
+            inicio=inicio,
+            fim=fim,
+            registros=registros,
+            erro=""
+        )
+
     except Exception as erro:
-        print(f"Erro ao atualizar {tipo}: {erro}")
-        definir_status(tipo, f"erro: {erro}")
+        fim = agora_brasil()
+        erro_texto = str(erro)
+
+        print(f"Erro ao atualizar {tipo}: {erro_texto}")
+        print(traceback.format_exc())
+
+        definir_status(tipo, f"erro: {erro_texto}")
+
+        registrar_log_atualizacao(
+            tipo=tipo,
+            status="ERRO",
+            inicio=inicio,
+            fim=fim,
+            registros=registros,
+            erro=erro_texto
+        )
 
     finally:
         with jobs_lock:
@@ -541,4 +667,5 @@ def atualizar(tipo):
 
 
 if __name__ == "__main__":
+    garantir_pasta_logs()
     app.run(debug=True)
