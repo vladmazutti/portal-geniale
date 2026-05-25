@@ -6,6 +6,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 from apscheduler.schedulers.background import BackgroundScheduler
 from threading import Thread, Lock
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
 import os
 import traceback
@@ -16,6 +17,11 @@ app = Flask(__name__)
 FUSO_BRASIL = ZoneInfo("America/Sao_Paulo")
 
 LOG_DIR = "logs"
+
+OMIE_REGISTROS_POR_PAGINA = 1000
+OMIE_TENTATIVA_MAXIMA = 3
+OMIE_TIMEOUT = 90
+OMIE_MAX_WORKERS = 8
 
 jobs_em_execucao = {}
 jobs_lock = Lock()
@@ -162,6 +168,8 @@ def registrar_log_atualizacao(
     inicio,
     fim,
     registros=0,
+    paginas=0,
+    modo="Sequencial",
     erro=""
 ):
     config = RELATORIOS[tipo]
@@ -178,6 +186,9 @@ def registrar_log_atualizacao(
         f"FIM: {fim.strftime('%d/%m/%Y %H:%M:%S')}",
         f"DURAÇÃO: {duracao_formatada}",
         f"REGISTROS OMIE: {registros}",
+        f"PÁGINAS OMIE: {paginas}",
+        f"MODO OMIE: {modo}",
+        f"WORKERS OMIE: {OMIE_MAX_WORKERS}",
     ]
 
     if erro:
@@ -237,7 +248,12 @@ def montar_relatorios_para_tela():
     return lista
 
 
-def buscar_pagina_omie(app_key, app_secret, pagina, tentativa_maxima=3):
+def buscar_pagina_omie(
+    app_key,
+    app_secret,
+    pagina,
+    tentativa_maxima=OMIE_TENTATIVA_MAXIMA
+):
     url = "https://app.omie.com.br/api/v1/geral/clientes/"
 
     payload = {
@@ -247,7 +263,7 @@ def buscar_pagina_omie(app_key, app_secret, pagina, tentativa_maxima=3):
         "param": [
             {
                 "pagina": pagina,
-                "registros_por_pagina": 1000,
+                "registros_por_pagina": OMIE_REGISTROS_POR_PAGINA,
                 "apenas_importado_api": "N",
             }
         ],
@@ -258,37 +274,45 @@ def buscar_pagina_omie(app_key, app_secret, pagina, tentativa_maxima=3):
             response = requests.post(
                 url,
                 json=payload,
-                timeout=90
+                timeout=OMIE_TIMEOUT
             )
 
             if response.status_code == 429:
-                espera = tentativa * 5
+                espera = tentativa * 8
+
                 print(
                     f"Limite OMIE atingido na página {pagina}. "
+                    f"Tentativa {tentativa}/{tentativa_maxima}. "
                     f"Aguardando {espera}s..."
                 )
+
                 time.sleep(espera)
                 continue
 
             response.raise_for_status()
+
             return response.json()
 
         except Timeout:
-            espera = tentativa * 5
+            espera = tentativa * 6
+
             print(
                 f"Timeout na página {pagina}. "
                 f"Tentativa {tentativa}/{tentativa_maxima}. "
                 f"Aguardando {espera}s..."
             )
+
             time.sleep(espera)
 
         except RequestException as erro:
-            espera = tentativa * 5
+            espera = tentativa * 6
+
             print(
                 f"Erro de conexão na página {pagina}: {erro}. "
                 f"Tentativa {tentativa}/{tentativa_maxima}. "
                 f"Aguardando {espera}s..."
             )
+
             time.sleep(espera)
 
     raise Exception(
@@ -297,37 +321,108 @@ def buscar_pagina_omie(app_key, app_secret, pagina, tentativa_maxima=3):
     )
 
 
-def buscar_clientes_omie(app_key, app_secret):
+def montar_linha_cliente(cliente):
+    linha = [""] * 65
+    dados_bancarios = cliente.get("dadosBancarios", {})
+
+    linha[1] = cliente.get("cnpj_cpf") or "N/D"
+    linha[2] = cliente.get("razao_social") or "N/D"
+    linha[17] = cliente.get("website") or "N/D"
+    linha[18] = dados_bancarios.get("codigo_banco") or "N/D"
+    linha[19] = dados_bancarios.get("agencia") or "N/D"
+    linha[20] = dados_bancarios.get("conta_corrente") or "N/D"
+    linha[22] = dados_bancarios.get("nome_titular") or "N/D"
+    linha[64] = dados_bancarios.get("cChavePix") or "N/D"
+
+    return linha
+
+
+def processar_clientes_pagina(dados):
     linhas = []
-    pagina = 1
-    total_paginas = 1
+    clientes = dados.get("clientes_cadastro", [])
 
-    while pagina <= total_paginas:
-        dados = buscar_pagina_omie(app_key, app_secret, pagina)
-
-        total_paginas = dados.get("total_de_paginas", 1)
-        clientes = dados.get("clientes_cadastro", [])
-
-        print(f"Página {pagina}/{total_paginas} carregada...")
-
-        for cliente in clientes:
-            linha = [""] * 65
-            dados_bancarios = cliente.get("dadosBancarios", {})
-
-            linha[1] = cliente.get("cnpj_cpf") or "N/D"
-            linha[2] = cliente.get("razao_social") or "N/D"
-            linha[17] = cliente.get("website") or "N/D"
-            linha[18] = dados_bancarios.get("codigo_banco") or "N/D"
-            linha[19] = dados_bancarios.get("agencia") or "N/D"
-            linha[20] = dados_bancarios.get("conta_corrente") or "N/D"
-            linha[22] = dados_bancarios.get("nome_titular") or "N/D"
-            linha[64] = dados_bancarios.get("cChavePix") or "N/D"
-
-            linhas.append(linha)
-
-        pagina += 1
+    for cliente in clientes:
+        linhas.append(montar_linha_cliente(cliente))
 
     return linhas
+
+
+def buscar_clientes_omie(app_key, app_secret):
+    print("Consultando primeira página OMIE para identificar total de páginas...")
+
+    dados_primeira_pagina = buscar_pagina_omie(
+        app_key,
+        app_secret,
+        1
+    )
+
+    total_paginas = dados_primeira_pagina.get("total_de_paginas", 1)
+
+    print(f"Total de páginas OMIE identificado: {total_paginas}")
+
+    paginas_resultado = {
+        1: processar_clientes_pagina(dados_primeira_pagina)
+    }
+
+    if total_paginas <= 1:
+        linhas = paginas_resultado[1]
+
+        return {
+            "linhas": linhas,
+            "total_paginas": total_paginas,
+            "modo": "Sequencial",
+        }
+
+    paginas_restantes = list(range(2, total_paginas + 1))
+
+    print(
+        f"Iniciando busca paralela OMIE com "
+        f"{OMIE_MAX_WORKERS} workers..."
+    )
+
+    with ThreadPoolExecutor(max_workers=OMIE_MAX_WORKERS) as executor:
+        tarefas = {}
+
+        for pagina in paginas_restantes:
+            tarefa = executor.submit(
+                buscar_pagina_omie,
+                app_key,
+                app_secret,
+                pagina
+            )
+
+            tarefas[tarefa] = pagina
+
+        for tarefa in as_completed(tarefas):
+            pagina = tarefas[tarefa]
+
+            try:
+                dados = tarefa.result()
+                paginas_resultado[pagina] = processar_clientes_pagina(dados)
+
+                print(f"Página {pagina}/{total_paginas} carregada...")
+
+            except Exception as erro:
+                raise Exception(
+                    f"Erro ao processar página OMIE {pagina}: {erro}"
+                )
+
+    linhas = []
+
+    for pagina in range(1, total_paginas + 1):
+        linhas.extend(paginas_resultado.get(pagina, []))
+
+    print(
+        f"Busca OMIE concluída. "
+        f"Páginas: {total_paginas}. "
+        f"Registros: {len(linhas)}."
+    )
+
+    return {
+        "linhas": linhas,
+        "total_paginas": total_paginas,
+        "modo": "Paralelo",
+    }
 
 
 def salvar_workbook_com_seguranca(wb, arquivo_final):
@@ -364,7 +459,11 @@ def gerar_planilha(tipo):
     if not os.path.exists(config["modelo"]):
         raise Exception(f"Modelo não encontrado: {config['modelo']}")
 
-    linhas = buscar_clientes_omie(app_key, app_secret)
+    resultado_omie = buscar_clientes_omie(app_key, app_secret)
+
+    linhas = resultado_omie["linhas"]
+    total_paginas = resultado_omie["total_paginas"]
+    modo = resultado_omie["modo"]
 
     wb = load_workbook(config["modelo"])
 
@@ -403,17 +502,27 @@ def gerar_planilha(tipo):
 
     print(f"Planilha {config['nome']} atualizada com sucesso!")
 
-    return len(linhas)
+    return {
+        "registros": len(linhas),
+        "paginas": total_paginas,
+        "modo": modo,
+    }
 
 
 def executar_atualizacao_background(tipo):
     inicio = agora_brasil()
     registros = 0
+    paginas = 0
+    modo = "Paralelo"
 
     try:
         definir_status(tipo, "atualizando")
 
-        registros = gerar_planilha(tipo)
+        resultado = gerar_planilha(tipo)
+
+        registros = resultado.get("registros", 0)
+        paginas = resultado.get("paginas", 0)
+        modo = resultado.get("modo", "Paralelo")
 
         definir_status(tipo, "ok")
 
@@ -425,6 +534,8 @@ def executar_atualizacao_background(tipo):
             inicio=inicio,
             fim=fim,
             registros=registros,
+            paginas=paginas,
+            modo=modo,
             erro=""
         )
 
@@ -443,6 +554,8 @@ def executar_atualizacao_background(tipo):
             inicio=inicio,
             fim=fim,
             registros=registros,
+            paginas=paginas,
+            modo=modo,
             erro=erro_texto
         )
 
@@ -597,7 +710,7 @@ def acessar(tipo):
 
     erro = ""
 
-    if request.method == "POST":
+    if request.method == "POST:
         senha_digitada = request.form.get("senha", "")
         senha_correta = os.getenv("FINANCEIRO_PASSWORD")
 
