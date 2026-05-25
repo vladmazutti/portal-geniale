@@ -1,27 +1,13 @@
-from flask import (
-    Flask,
-    send_file,
-    request,
-    redirect,
-    url_for,
-    render_template,
-    jsonify,
-)
-
+from flask import Flask, send_file, request, redirect, url_for, render_template, jsonify
 import requests
 from requests.exceptions import Timeout, RequestException
-
+from openpyxl import load_workbook
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from apscheduler.schedulers.background import BackgroundScheduler
 from threading import Thread, Lock
-
 import time
 import os
-import zipfile
-import xml.etree.ElementTree as ET
-import posixpath
-
 
 app = Flask(__name__)
 
@@ -29,7 +15,6 @@ FUSO_BRASIL = ZoneInfo("America/Sao_Paulo")
 
 jobs_em_execucao = {}
 jobs_lock = Lock()
-
 
 RELATORIOS = {
     "geniale": {
@@ -251,241 +236,13 @@ def buscar_clientes_omie(app_key, app_secret):
     return linhas
 
 
-def nome_coluna_excel(numero):
-    nome = ""
-
-    while numero:
-        numero, resto = divmod(numero - 1, 26)
-        nome = chr(65 + resto) + nome
-
-    return nome
-
-
-def montar_linhas_base_omie(linhas):
-    cabecalhos = [""] * 65
-    cabecalhos[1] = "CNPJ/CPF"
-    cabecalhos[2] = "Razão Social"
-    cabecalhos[17] = "Website"
-    cabecalhos[18] = "Banco"
-    cabecalhos[19] = "Agência"
-    cabecalhos[20] = "Conta Corrente"
-    cabecalhos[22] = "Nome Titular Conta"
-    cabecalhos[64] = "Chave PIX"
-
-    return [cabecalhos] + linhas
-
-
-def localizar_caminho_aba(zf, nome_aba):
-    ns_main = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
-    ns_rel = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
-    ns_pkg_rel = "http://schemas.openxmlformats.org/package/2006/relationships"
-
-    workbook_xml = zf.read("xl/workbook.xml")
-    workbook_root = ET.fromstring(workbook_xml)
-
-    sheet_rid = None
-
-    for sheet in workbook_root.findall(f".//{{{ns_main}}}sheet"):
-        if sheet.attrib.get("name") == nome_aba:
-            sheet_rid = sheet.attrib.get(f"{{{ns_rel}}}id")
-            break
-
-    if not sheet_rid:
-        raise Exception(f"Aba '{nome_aba}' não encontrada no workbook.")
-
-    rels_xml = zf.read("xl/_rels/workbook.xml.rels")
-    rels_root = ET.fromstring(rels_xml)
-
-    target = None
-
-    for rel in rels_root.findall(f".//{{{ns_pkg_rel}}}Relationship"):
-        if rel.attrib.get("Id") == sheet_rid:
-            target = rel.attrib.get("Target")
-            break
-
-    if not target:
-        raise Exception(f"Relacionamento da aba '{nome_aba}' não encontrado.")
-
-    if target.startswith("/"):
-        caminho = target.lstrip("/")
-    else:
-        caminho = posixpath.normpath(posixpath.join("xl", target))
-
-    return caminho
-
-
-def ocultar_aba_no_workbook_xml(workbook_xml, nome_aba):
-    ns_main = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
-
-    ET.register_namespace("", ns_main)
-    ET.register_namespace(
-        "r",
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
-    )
-
-    root = ET.fromstring(workbook_xml)
-
-    for sheet in root.findall(f".//{{{ns_main}}}sheet"):
-        if sheet.attrib.get("name") == nome_aba:
-            sheet.set("state", "veryHidden")
-
-    return ET.tostring(
-        root,
-        encoding="utf-8",
-        xml_declaration=True
-    )
-
-
-def remover_calcchain_rels(workbook_rels_xml):
-    ns_pkg_rel = "http://schemas.openxmlformats.org/package/2006/relationships"
-
-    ET.register_namespace("", ns_pkg_rel)
-
-    root = ET.fromstring(workbook_rels_xml)
-
-    for rel in list(root):
-        tipo = rel.attrib.get("Type", "")
-        target = rel.attrib.get("Target", "")
-
-        if "calcChain" in tipo or "calcChain" in target:
-            root.remove(rel)
-
-    return ET.tostring(
-        root,
-        encoding="utf-8",
-        xml_declaration=True
-    )
-
-
-def remover_calcchain_content_types(content_types_xml):
-    ns_ct = "http://schemas.openxmlformats.org/package/2006/content-types"
-
-    ET.register_namespace("", ns_ct)
-
-    root = ET.fromstring(content_types_xml)
-
-    for item in list(root):
-        part_name = item.attrib.get("PartName", "")
-
-        if part_name == "/xl/calcChain.xml":
-            root.remove(item)
-
-    return ET.tostring(
-        root,
-        encoding="utf-8",
-        xml_declaration=True
-    )
-
-
-def atualizar_sheet_xml_base_omie(sheet_xml, linhas):
-    ns_main = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
-
-    ET.register_namespace("", ns_main)
-
-    root = ET.fromstring(sheet_xml)
-
-    sheet_data = root.find(f"{{{ns_main}}}sheetData")
-
-    if sheet_data is None:
-        sheet_data = ET.SubElement(root, f"{{{ns_main}}}sheetData")
-
-    sheet_data.clear()
-
-    total_linhas = len(linhas)
-    total_colunas = 65
-
-    dimension = root.find(f"{{{ns_main}}}dimension")
-
-    if dimension is not None:
-        ultima_coluna = nome_coluna_excel(total_colunas)
-        dimension.set("ref", f"A1:{ultima_coluna}{max(total_linhas, 1)}")
-
-    for numero_linha, valores in enumerate(linhas, start=1):
-        row = ET.SubElement(
-            sheet_data,
-            f"{{{ns_main}}}row",
-            {
-                "r": str(numero_linha)
-            }
-        )
-
-        for numero_coluna, valor in enumerate(valores, start=1):
-            if valor is None or valor == "":
-                continue
-
-            referencia = f"{nome_coluna_excel(numero_coluna)}{numero_linha}"
-
-            cell = ET.SubElement(
-                row,
-                f"{{{ns_main}}}c",
-                {
-                    "r": referencia,
-                    "t": "inlineStr"
-                }
-            )
-
-            inline_string = ET.SubElement(
-                cell,
-                f"{{{ns_main}}}is"
-            )
-
-            texto = ET.SubElement(
-                inline_string,
-                f"{{{ns_main}}}t"
-            )
-
-            texto.text = str(valor)
-
-    return ET.tostring(
-        root,
-        encoding="utf-8",
-        xml_declaration=True
-    )
-
-
-def atualizar_xlsx_base_omie(modelo, arquivo_final, linhas):
+def salvar_workbook_com_seguranca(wb, arquivo_final):
     arquivo_temporario = f"{arquivo_final}.tmp.xlsx"
-    linhas_base = montar_linhas_base_omie(linhas)
 
     if os.path.exists(arquivo_temporario):
         os.remove(arquivo_temporario)
 
-    with zipfile.ZipFile(modelo, "r") as zin:
-        caminho_base_omie = localizar_caminho_aba(zin, "BASE OMIE")
-
-        with zipfile.ZipFile(
-            arquivo_temporario,
-            "w",
-            compression=zipfile.ZIP_DEFLATED
-        ) as zout:
-
-            for item in zin.infolist():
-                nome = item.filename
-
-                if nome == "xl/calcChain.xml":
-                    continue
-
-                conteudo = zin.read(nome)
-
-                if nome == "xl/workbook.xml":
-                    conteudo = ocultar_aba_no_workbook_xml(
-                        conteudo,
-                        "BASE OMIE"
-                    )
-
-                elif nome == "xl/_rels/workbook.xml.rels":
-                    conteudo = remover_calcchain_rels(conteudo)
-
-                elif nome == "[Content_Types].xml":
-                    conteudo = remover_calcchain_content_types(conteudo)
-
-                elif nome == caminho_base_omie:
-                    conteudo = atualizar_sheet_xml_base_omie(
-                        conteudo,
-                        linhas_base
-                    )
-
-                zout.writestr(item, conteudo)
+    wb.save(arquivo_temporario)
 
     if not os.path.exists(arquivo_temporario):
         raise Exception("Arquivo temporário não foi gerado corretamente.")
@@ -515,10 +272,34 @@ def gerar_planilha(tipo):
 
     linhas = buscar_clientes_omie(app_key, app_secret)
 
-    atualizar_xlsx_base_omie(
-        config["modelo"],
-        config["arquivo_pronto"],
-        linhas
+    wb = load_workbook(config["modelo"])
+
+    if "BASE OMIE" not in wb.sheetnames:
+        raise Exception(f"Aba 'BASE OMIE' não encontrada em {config['modelo']}")
+
+    ws = wb["BASE OMIE"]
+    ws.sheet_state = "veryHidden"
+
+    ws.delete_rows(1, ws.max_row)
+
+    cabecalhos = [""] * 65
+    cabecalhos[1] = "CNPJ/CPF"
+    cabecalhos[2] = "Razão Social"
+    cabecalhos[17] = "Website"
+    cabecalhos[18] = "Banco"
+    cabecalhos[19] = "Agência"
+    cabecalhos[20] = "Conta Corrente"
+    cabecalhos[22] = "Nome Titular Conta"
+    cabecalhos[64] = "Chave PIX"
+
+    ws.append(cabecalhos)
+
+    for linha in linhas:
+        ws.append(linha)
+
+    salvar_workbook_com_seguranca(
+        wb,
+        config["arquivo_pronto"]
     )
 
     escrever_arquivo(
