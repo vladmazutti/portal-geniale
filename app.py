@@ -25,6 +25,8 @@ OMIE_TENTATIVA_MAXIMA = 5
 OMIE_TIMEOUT = 90
 OMIE_MAX_WORKERS = 4
 
+COLUNAS_BASE_OMIE = 65
+
 jobs_em_execucao = {}
 jobs_lock = Lock()
 
@@ -333,7 +335,7 @@ def buscar_pagina_omie(
 
 
 def montar_linha_cliente(cliente):
-    linha = [""] * 65
+    linha = [""] * COLUNAS_BASE_OMIE
     dados_bancarios = cliente.get("dadosBancarios", {})
 
     linha[1] = cliente.get("cnpj_cpf") or "N/D"
@@ -486,6 +488,66 @@ def buscar_clientes_omie(app_key, app_secret, config):
     }
 
 
+def limpar_base_omie_sem_deletar_linhas(ws, total_linhas_novas):
+    ultima_linha_existente = max(ws.max_row, total_linhas_novas, 1)
+
+    for numero_linha in range(1, ultima_linha_existente + 1):
+        for numero_coluna in range(1, COLUNAS_BASE_OMIE + 1):
+            ws.cell(
+                row=numero_linha,
+                column=numero_coluna
+            ).value = None
+
+
+def escrever_linha_base_omie(ws, numero_linha, valores):
+    for indice, valor in enumerate(valores, start=1):
+        ws.cell(
+            row=numero_linha,
+            column=indice
+        ).value = valor
+
+
+def montar_cabecalhos_base_omie():
+    cabecalhos = [""] * COLUNAS_BASE_OMIE
+
+    cabecalhos[1] = "CNPJ/CPF"
+    cabecalhos[2] = "Razão Social"
+    cabecalhos[17] = "Website"
+    cabecalhos[18] = "Banco"
+    cabecalhos[19] = "Agência"
+    cabecalhos[20] = "Conta Corrente"
+    cabecalhos[22] = "Nome Titular Conta"
+    cabecalhos[64] = "Chave PIX"
+
+    return cabecalhos
+
+
+def atualizar_base_omie(ws, linhas):
+    total_linhas_novas = len(linhas) + 1
+
+    limpar_base_omie_sem_deletar_linhas(
+        ws,
+        total_linhas_novas
+    )
+
+    escrever_linha_base_omie(
+        ws,
+        1,
+        montar_cabecalhos_base_omie()
+    )
+
+    numero_linha = 2
+
+    for linha in linhas:
+        escrever_linha_base_omie(
+            ws,
+            numero_linha,
+            linha
+        )
+
+        numero_linha += 1
+
+
 def salvar_workbook_com_seguranca(wb, arquivo_final):
     arquivo_temporario = f"{arquivo_final}.tmp.xlsx"
 
@@ -539,22 +601,10 @@ def gerar_planilha(tipo):
     ws = wb["BASE OMIE"]
     ws.sheet_state = "veryHidden"
 
-    ws.delete_rows(1, ws.max_row)
-
-    cabecalhos = [""] * 65
-    cabecalhos[1] = "CNPJ/CPF"
-    cabecalhos[2] = "Razão Social"
-    cabecalhos[17] = "Website"
-    cabecalhos[18] = "Banco"
-    cabecalhos[19] = "Agência"
-    cabecalhos[20] = "Conta Corrente"
-    cabecalhos[22] = "Nome Titular Conta"
-    cabecalhos[64] = "Chave PIX"
-
-    ws.append(cabecalhos)
-
-    for linha in linhas:
-        ws.append(linha)
+    atualizar_base_omie(
+        ws,
+        linhas
+    )
 
     salvar_workbook_com_seguranca(
         wb,
