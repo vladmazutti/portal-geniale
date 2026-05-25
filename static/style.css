@@ -272,9 +272,18 @@ main{
     width:12px;
     height:12px;
     border-radius:50%;
+}
+
+.status-dot.ok{
     background:#35d07f;
     box-shadow:
         0 0 12px #35d07f;
+}
+
+.status-dot.erro{
+    background:#ff8a00;
+    box-shadow:
+        0 0 12px #ff8a00;
 }
 
 .status-text{
