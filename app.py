@@ -2,13 +2,14 @@ from flask import Flask, send_file, request, redirect, url_for, render_template,
 import requests
 from requests.exceptions import Timeout, RequestException
 from openpyxl import load_workbook
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from apscheduler.schedulers.background import BackgroundScheduler
 from threading import Thread, Lock
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
 import os
+import json
 import traceback
 
 
@@ -17,11 +18,14 @@ app = Flask(__name__)
 FUSO_BRASIL = ZoneInfo("America/Sao_Paulo")
 
 LOG_DIR = "logs"
+CACHE_DIR = "cache"
 
 OMIE_REGISTROS_POR_PAGINA = 1000
 OMIE_TENTATIVA_MAXIMA = 5
 OMIE_TIMEOUT = 90
 OMIE_MAX_WORKERS = 4
+
+CACHE_FULL_REFRESH_DIAS = 7
 
 jobs_em_execucao = {}
 jobs_lock = Lock()
@@ -37,6 +41,7 @@ RELATORIOS = {
         "arquivo_atualizacao": "ultima_atualizacao_geniale.txt",
         "arquivo_status": "status_geniale.txt",
         "arquivo_log": "logs/geniale.log",
+        "arquivo_cache": "cache/cache_omie_geniale.json",
         "env_key": "OMIE_APP_KEY",
         "env_secret": "OMIE_APP_SECRET",
         "download_name": "Pagamentos_Geniale",
@@ -53,6 +58,7 @@ RELATORIOS = {
         "arquivo_atualizacao": "ultima_atualizacao_paniz.txt",
         "arquivo_status": "status_paniz.txt",
         "arquivo_log": "logs/paniz.log",
+        "arquivo_cache": "cache/cache_omie_paniz.json",
         "env_key": "OMIE_PANIZ_APP_KEY",
         "env_secret": "OMIE_PANIZ_APP_SECRET",
         "download_name": "Pagamentos_Paniz",
@@ -69,6 +75,7 @@ RELATORIOS = {
         "arquivo_atualizacao": "ultima_atualizacao_financeiro.txt",
         "arquivo_status": "status_financeiro.txt",
         "arquivo_log": "logs/financeiro.log",
+        "arquivo_cache": "cache/cache_omie_financeiro.json",
         "env_key": "OMIE_APP_KEY",
         "env_secret": "OMIE_APP_SECRET",
         "download_name": "Consolidadora_Financeiro",
@@ -84,6 +91,11 @@ def garantir_pasta_logs():
         os.makedirs(LOG_DIR)
 
 
+def garantir_pasta_cache():
+    if not os.path.exists(CACHE_DIR):
+        os.makedirs(CACHE_DIR)
+
+
 def agora_brasil():
     return datetime.now(FUSO_BRASIL)
 
@@ -94,6 +106,14 @@ def agora_formatado():
 
 def data_arquivo():
     return agora_brasil().strftime("%d%m%y")
+
+
+def data_omie(data_hora):
+    return data_hora.strftime("%d/%m/%Y")
+
+
+def hora_omie(data_hora):
+    return data_hora.strftime("%H:%M:%S")
 
 
 def formatar_duracao(segundos):
@@ -169,6 +189,8 @@ def registrar_log_atualizacao(
     registros=0,
     paginas=0,
     modo="Sequencial",
+    cache="Não utilizado",
+    alterados=0,
     erro=""
 ):
     config = RELATORIOS[tipo]
@@ -188,6 +210,8 @@ def registrar_log_atualizacao(
         f"PÁGINAS OMIE: {paginas}",
         f"MODO OMIE: {modo}",
         f"WORKERS OMIE: {OMIE_MAX_WORKERS}",
+        f"CACHE: {cache}",
+        f"REGISTROS ALTERADOS: {alterados}",
     ]
 
     if erro:
@@ -247,24 +271,117 @@ def montar_relatorios_para_tela():
     return lista
 
 
+def carregar_cache(config):
+    caminho = config["arquivo_cache"]
+
+    if not os.path.exists(caminho):
+        return {
+            "gerado_em": "",
+            "ultima_atualizacao_completa": "",
+            "registros": {}
+        }
+
+    try:
+        with open(caminho, "r", encoding="utf-8") as f:
+            return json.load(f)
+
+    except Exception:
+        return {
+            "gerado_em": "",
+            "ultima_atualizacao_completa": "",
+            "registros": {}
+        }
+
+
+def salvar_cache(config, cache):
+    garantir_pasta_cache()
+
+    caminho = config["arquivo_cache"]
+    arquivo_temporario = f"{caminho}.tmp"
+
+    with open(arquivo_temporario, "w", encoding="utf-8") as f:
+        json.dump(cache, f, ensure_ascii=False)
+
+    os.replace(arquivo_temporario, caminho)
+
+
+def cache_tem_registros(cache):
+    registros = cache.get("registros", {})
+    return isinstance(registros, dict) and len(registros) > 0
+
+
+def obter_data_cache(cache):
+    gerado_em = cache.get("gerado_em", "")
+
+    if not gerado_em:
+        return None
+
+    try:
+        return datetime.fromisoformat(gerado_em)
+
+    except Exception:
+        return None
+
+
+def cache_precisa_refresh_completo(cache):
+    data_cache = obter_data_cache(cache)
+
+    if not data_cache:
+        return True
+
+    agora = agora_brasil()
+
+    if data_cache.tzinfo is None:
+        data_cache = data_cache.replace(tzinfo=FUSO_BRASIL)
+
+    diferenca = agora - data_cache
+
+    return diferenca.days >= CACHE_FULL_REFRESH_DIAS
+
+
+def chave_cliente(cliente):
+    codigo = cliente.get("codigo_cliente_omie")
+
+    if codigo:
+        return f"codigo:{codigo}"
+
+    cnpj_cpf = cliente.get("cnpj_cpf")
+
+    if cnpj_cpf:
+        return f"documento:{cnpj_cpf}"
+
+    razao_social = cliente.get("razao_social")
+
+    if razao_social:
+        return f"nome:{razao_social}"
+
+    return f"sem_chave:{time.time()}"
+
+
 def buscar_pagina_omie(
     app_key,
     app_secret,
     pagina,
+    filtros=None,
     tentativa_maxima=OMIE_TENTATIVA_MAXIMA
 ):
     url = "https://app.omie.com.br/api/v1/geral/clientes/"
+
+    parametros = {
+        "pagina": pagina,
+        "registros_por_pagina": OMIE_REGISTROS_POR_PAGINA,
+        "apenas_importado_api": "N",
+    }
+
+    if filtros:
+        parametros.update(filtros)
 
     payload = {
         "call": "ListarClientes",
         "app_key": app_key,
         "app_secret": app_secret,
         "param": [
-            {
-                "pagina": pagina,
-                "registros_por_pagina": OMIE_REGISTROS_POR_PAGINA,
-                "apenas_importado_api": "N",
-            }
+            parametros
         ],
     }
 
@@ -337,22 +454,31 @@ def montar_linha_cliente(cliente):
 
 
 def processar_clientes_pagina(dados):
-    linhas = []
+    registros = {}
     clientes = dados.get("clientes_cadastro", [])
 
     for cliente in clientes:
-        linhas.append(montar_linha_cliente(cliente))
+        chave = chave_cliente(cliente)
 
-    return linhas
+        registros[chave] = {
+            "linha": montar_linha_cliente(cliente),
+            "razao_social": cliente.get("razao_social") or "",
+            "cnpj_cpf": cliente.get("cnpj_cpf") or "",
+            "codigo_cliente_omie": cliente.get("codigo_cliente_omie") or "",
+            "atualizado_em": agora_brasil().isoformat(),
+        }
+
+    return registros
 
 
-def buscar_clientes_omie(app_key, app_secret):
+def consultar_paginas_omie(app_key, app_secret, filtros=None):
     print("Consultando primeira página OMIE para identificar total de páginas...")
 
     dados_primeira_pagina = buscar_pagina_omie(
         app_key,
         app_secret,
-        1
+        1,
+        filtros=filtros
     )
 
     total_paginas = dados_primeira_pagina.get("total_de_paginas", 1)
@@ -364,10 +490,8 @@ def buscar_clientes_omie(app_key, app_secret):
     }
 
     if total_paginas <= 1:
-        linhas = paginas_resultado[1]
-
         return {
-            "linhas": linhas,
+            "registros": paginas_resultado[1],
             "total_paginas": total_paginas,
             "modo": "Sequencial",
         }
@@ -387,7 +511,8 @@ def buscar_clientes_omie(app_key, app_secret):
                 buscar_pagina_omie,
                 app_key,
                 app_secret,
-                pagina
+                pagina,
+                filtros
             )
 
             tarefas[tarefa] = pagina
@@ -406,22 +531,162 @@ def buscar_clientes_omie(app_key, app_secret):
                     f"Erro ao processar página OMIE {pagina}: {erro}"
                 )
 
-    linhas = []
+    registros = {}
 
     for pagina in range(1, total_paginas + 1):
-        linhas.extend(paginas_resultado.get(pagina, []))
+        registros.update(paginas_resultado.get(pagina, {}))
 
     print(
         f"Busca OMIE concluída. "
         f"Páginas: {total_paginas}. "
-        f"Registros: {len(linhas)}."
+        f"Registros retornados: {len(registros)}."
     )
 
     return {
-        "linhas": linhas,
+        "registros": registros,
         "total_paginas": total_paginas,
         "modo": "Paralelo",
     }
+
+
+def montar_filtros_incrementais(cache):
+    data_cache = obter_data_cache(cache)
+
+    if not data_cache:
+        return None
+
+    if data_cache.tzinfo is None:
+        data_cache = data_cache.replace(tzinfo=FUSO_BRASIL)
+
+    inicio_busca = data_cache - timedelta(days=1)
+
+    return {
+        "filtrar_por_data_de_alteracao_de": data_omie(inicio_busca),
+        "filtrar_por_hora_de_alteracao_de": "00:00:00",
+        "filtrar_por_data_de_alteracao_ate": data_omie(agora_brasil()),
+        "filtrar_por_hora_de_alteracao_ate": "23:59:59",
+    }
+
+
+def montar_linhas_do_cache(cache):
+    registros = cache.get("registros", {})
+
+    itens = list(registros.values())
+
+    itens.sort(
+        key=lambda item: (
+            item.get("razao_social") or "",
+            item.get("cnpj_cpf") or "",
+            str(item.get("codigo_cliente_omie") or "")
+        )
+    )
+
+    linhas = []
+
+    for item in itens:
+        linha = item.get("linha")
+
+        if isinstance(linha, list):
+            linhas.append(linha)
+
+    return linhas
+
+
+def buscar_clientes_omie(app_key, app_secret, config):
+    cache = carregar_cache(config)
+
+    usar_cache_incremental = (
+        cache_tem_registros(cache)
+        and not cache_precisa_refresh_completo(cache)
+    )
+
+    if not usar_cache_incremental:
+        print("Cache ausente ou vencido. Executando atualização completa OMIE...")
+
+        resultado = consultar_paginas_omie(
+            app_key,
+            app_secret,
+            filtros=None
+        )
+
+        cache = {
+            "gerado_em": agora_brasil().isoformat(),
+            "ultima_atualizacao_completa": agora_brasil().isoformat(),
+            "registros": resultado["registros"],
+        }
+
+        salvar_cache(config, cache)
+
+        linhas = montar_linhas_do_cache(cache)
+
+        return {
+            "linhas": linhas,
+            "total_paginas": resultado["total_paginas"],
+            "modo": resultado["modo"],
+            "cache": "Refresh completo",
+            "alterados": len(resultado["registros"]),
+        }
+
+    print("Cache encontrado. Tentando atualização incremental OMIE...")
+
+    filtros = montar_filtros_incrementais(cache)
+
+    try:
+        resultado_incremental = consultar_paginas_omie(
+            app_key,
+            app_secret,
+            filtros=filtros
+        )
+
+        registros_cache = cache.get("registros", {})
+        registros_alterados = resultado_incremental["registros"]
+
+        registros_cache.update(registros_alterados)
+
+        cache["gerado_em"] = agora_brasil().isoformat()
+        cache["registros"] = registros_cache
+
+        salvar_cache(config, cache)
+
+        linhas = montar_linhas_do_cache(cache)
+
+        return {
+            "linhas": linhas,
+            "total_paginas": resultado_incremental["total_paginas"],
+            "modo": resultado_incremental["modo"],
+            "cache": "Incremental",
+            "alterados": len(registros_alterados),
+        }
+
+    except Exception as erro_incremental:
+        print(
+            "Falha na atualização incremental. "
+            f"Executando atualização completa. Erro: {erro_incremental}"
+        )
+
+        resultado = consultar_paginas_omie(
+            app_key,
+            app_secret,
+            filtros=None
+        )
+
+        cache = {
+            "gerado_em": agora_brasil().isoformat(),
+            "ultima_atualizacao_completa": agora_brasil().isoformat(),
+            "registros": resultado["registros"],
+        }
+
+        salvar_cache(config, cache)
+
+        linhas = montar_linhas_do_cache(cache)
+
+        return {
+            "linhas": linhas,
+            "total_paginas": resultado["total_paginas"],
+            "modo": resultado["modo"],
+            "cache": "Fallback completo",
+            "alterados": len(resultado["registros"]),
+        }
 
 
 def salvar_workbook_com_seguranca(wb, arquivo_final):
@@ -458,11 +723,17 @@ def gerar_planilha(tipo):
     if not os.path.exists(config["modelo"]):
         raise Exception(f"Modelo não encontrado: {config['modelo']}")
 
-    resultado_omie = buscar_clientes_omie(app_key, app_secret)
+    resultado_omie = buscar_clientes_omie(
+        app_key,
+        app_secret,
+        config
+    )
 
     linhas = resultado_omie["linhas"]
     total_paginas = resultado_omie["total_paginas"]
     modo = resultado_omie["modo"]
+    cache_status = resultado_omie["cache"]
+    alterados = resultado_omie["alterados"]
 
     wb = load_workbook(config["modelo"])
 
@@ -505,6 +776,8 @@ def gerar_planilha(tipo):
         "registros": len(linhas),
         "paginas": total_paginas,
         "modo": modo,
+        "cache": cache_status,
+        "alterados": alterados,
     }
 
 
@@ -513,6 +786,8 @@ def executar_atualizacao_background(tipo):
     registros = 0
     paginas = 0
     modo = "Paralelo"
+    cache_status = "Não utilizado"
+    alterados = 0
 
     try:
         definir_status(tipo, "atualizando")
@@ -522,6 +797,8 @@ def executar_atualizacao_background(tipo):
         registros = resultado.get("registros", 0)
         paginas = resultado.get("paginas", 0)
         modo = resultado.get("modo", "Paralelo")
+        cache_status = resultado.get("cache", "Não utilizado")
+        alterados = resultado.get("alterados", 0)
 
         definir_status(tipo, "ok")
 
@@ -535,6 +812,8 @@ def executar_atualizacao_background(tipo):
             registros=registros,
             paginas=paginas,
             modo=modo,
+            cache=cache_status,
+            alterados=alterados,
             erro=""
         )
 
@@ -555,6 +834,8 @@ def executar_atualizacao_background(tipo):
             registros=registros,
             paginas=paginas,
             modo=modo,
+            cache=cache_status,
+            alterados=alterados,
             erro=erro_texto
         )
 
@@ -779,6 +1060,7 @@ def atualizar(tipo):
 
 
 garantir_pasta_logs()
+garantir_pasta_cache()
 
 
 if __name__ == "__main__":
