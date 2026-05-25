@@ -11,6 +11,10 @@ import time
 import os
 import json
 import traceback
+import zipfile
+import shutil
+import tempfile
+import xml.etree.ElementTree as ET
 
 
 app = Flask(__name__)
@@ -548,6 +552,210 @@ def atualizar_base_omie(ws, linhas):
         numero_linha += 1
 
 
+def remover_calcchain_do_xlsx(pasta_extraida):
+    caminho_calcchain = os.path.join(
+        pasta_extraida,
+        "xl",
+        "calcChain.xml"
+    )
+
+    if os.path.exists(caminho_calcchain):
+        os.remove(caminho_calcchain)
+
+    caminho_rels = os.path.join(
+        pasta_extraida,
+        "xl",
+        "_rels",
+        "workbook.xml.rels"
+    )
+
+    if os.path.exists(caminho_rels):
+        tree = ET.parse(caminho_rels)
+        root = tree.getroot()
+
+        for rel in list(root):
+            tipo = rel.attrib.get("Type", "")
+            target = rel.attrib.get("Target", "")
+
+            if "calcChain" in tipo or "calcChain" in target:
+                root.remove(rel)
+
+        tree.write(
+            caminho_rels,
+            encoding="utf-8",
+            xml_declaration=True
+        )
+
+    caminho_content_types = os.path.join(
+        pasta_extraida,
+        "[Content_Types].xml"
+    )
+
+    if os.path.exists(caminho_content_types):
+        tree = ET.parse(caminho_content_types)
+        root = tree.getroot()
+
+        for item in list(root):
+            part_name = item.attrib.get("PartName", "")
+
+            if part_name == "/xl/calcChain.xml":
+                root.remove(item)
+
+        tree.write(
+            caminho_content_types,
+            encoding="utf-8",
+            xml_declaration=True
+        )
+
+
+def normalizar_formulas_matriciais_do_xlsx(pasta_extraida):
+    pasta_worksheets = os.path.join(
+        pasta_extraida,
+        "xl",
+        "worksheets"
+    )
+
+    if not os.path.exists(pasta_worksheets):
+        return
+
+    for nome_arquivo in os.listdir(pasta_worksheets):
+        if not nome_arquivo.endswith(".xml"):
+            continue
+
+        caminho_sheet = os.path.join(
+            pasta_worksheets,
+            nome_arquivo
+        )
+
+        tree = ET.parse(caminho_sheet)
+        root = tree.getroot()
+
+        alterado = False
+
+        for formula in root.iter():
+            tag_limpa = formula.tag.split("}")[-1]
+
+            if tag_limpa != "f":
+                continue
+
+            if formula.attrib.get("t") == "array":
+                formula.attrib.pop("t", None)
+                formula.attrib.pop("ref", None)
+                formula.attrib.pop("aca", None)
+                formula.attrib.pop("ca", None)
+                formula.attrib.pop("si", None)
+                alterado = True
+
+        if alterado:
+            tree.write(
+                caminho_sheet,
+                encoding="utf-8",
+                xml_declaration=True
+            )
+
+
+def forcar_recalculo_excel(pasta_extraida):
+    caminho_workbook = os.path.join(
+        pasta_extraida,
+        "xl",
+        "workbook.xml"
+    )
+
+    if not os.path.exists(caminho_workbook):
+        return
+
+    tree = ET.parse(caminho_workbook)
+    root = tree.getroot()
+
+    namespace = ""
+
+    if root.tag.startswith("{"):
+        namespace = root.tag.split("}")[0].replace("{", "")
+
+    if namespace:
+        calc_pr = root.find(f"{{{namespace}}}calcPr")
+    else:
+        calc_pr = root.find("calcPr")
+
+    if calc_pr is None:
+        if namespace:
+            calc_pr = ET.SubElement(root, f"{{{namespace}}}calcPr")
+        else:
+            calc_pr = ET.SubElement(root, "calcPr")
+
+    calc_pr.set("calcMode", "auto")
+    calc_pr.set("fullCalcOnLoad", "1")
+    calc_pr.set("forceFullCalc", "1")
+
+    tree.write(
+        caminho_workbook,
+        encoding="utf-8",
+        xml_declaration=True
+    )
+
+
+def recomprimir_xlsx(pasta_extraida, arquivo_saida):
+    with zipfile.ZipFile(
+        arquivo_saida,
+        "w",
+        compression=zipfile.ZIP_DEFLATED
+    ) as zip_saida:
+        for raiz, _, arquivos in os.walk(pasta_extraida):
+            for nome_arquivo in arquivos:
+                caminho_absoluto = os.path.join(
+                    raiz,
+                    nome_arquivo
+                )
+
+                caminho_relativo = os.path.relpath(
+                    caminho_absoluto,
+                    pasta_extraida
+                )
+
+                caminho_relativo = caminho_relativo.replace(
+                    os.sep,
+                    "/"
+                )
+
+                zip_saida.write(
+                    caminho_absoluto,
+                    caminho_relativo
+                )
+
+
+def sanitizar_xlsx_pos_salvamento(arquivo_xlsx):
+    pasta_temporaria = tempfile.mkdtemp()
+
+    try:
+        with zipfile.ZipFile(arquivo_xlsx, "r") as zip_entrada:
+            zip_entrada.extractall(pasta_temporaria)
+
+        remover_calcchain_do_xlsx(pasta_temporaria)
+        normalizar_formulas_matriciais_do_xlsx(pasta_temporaria)
+        forcar_recalculo_excel(pasta_temporaria)
+
+        arquivo_sanitizado = f"{arquivo_xlsx}.sanitized.xlsx"
+
+        if os.path.exists(arquivo_sanitizado):
+            os.remove(arquivo_sanitizado)
+
+        recomprimir_xlsx(
+            pasta_temporaria,
+            arquivo_sanitizado
+        )
+
+        os.replace(
+            arquivo_sanitizado,
+            arquivo_xlsx
+        )
+
+    finally:
+        shutil.rmtree(
+            pasta_temporaria,
+            ignore_errors=True
+        )
+
+
 def salvar_workbook_com_seguranca(wb, arquivo_final):
     arquivo_temporario = f"{arquivo_final}.tmp.xlsx"
 
@@ -558,6 +766,8 @@ def salvar_workbook_com_seguranca(wb, arquivo_final):
 
     if not os.path.exists(arquivo_temporario):
         raise Exception("Arquivo temporário não foi gerado corretamente.")
+
+    sanitizar_xlsx_pos_salvamento(arquivo_temporario)
 
     os.replace(arquivo_temporario, arquivo_final)
 
