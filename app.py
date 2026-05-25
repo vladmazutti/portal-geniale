@@ -1,26 +1,89 @@
-from flask import Flask, send_file
+from flask import Flask, send_file, request, redirect, url_for
 import requests
 from openpyxl import load_workbook
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from apscheduler.schedulers.background import BackgroundScheduler
 import time
 import os
 
 app = Flask(__name__)
 
-ARQUIVO_PRONTO = "planilha_pronta.xlsx"
-ARQUIVO_ATUALIZACAO = "ultima_atualizacao.txt"
+FUSO_BRASIL = ZoneInfo("America/Sao_Paulo")
+
+RELATORIOS = {
+    "geniale": {
+        "nome": "GENIALE",
+        "titulo": "Planilha de Pagamento",
+        "descricao": "Pagamentos operacionais Geniale",
+        "modelo": "modelo.xlsx",
+        "arquivo_pronto": "planilha_geniale.xlsx",
+        "arquivo_atualizacao": "ultima_atualizacao_geniale.txt",
+        "env_key": "OMIE_APP_KEY",
+        "env_secret": "OMIE_APP_SECRET",
+        "download_name": "Pagamentos_Geniale",
+        "restrito": False,
+    },
+    "paniz": {
+        "nome": "PANIZ",
+        "titulo": "Planilha de Pagamento",
+        "descricao": "Pagamentos operacionais Paniz",
+        "modelo": "modelo.xlsx",
+        "arquivo_pronto": "planilha_paniz.xlsx",
+        "arquivo_atualizacao": "ultima_atualizacao_paniz.txt",
+        "env_key": "OMIE_PANIZ_APP_KEY",
+        "env_secret": "OMIE_PANIZ_APP_SECRET",
+        "download_name": "Pagamentos_Paniz",
+        "restrito": False,
+    },
+    "financeiro": {
+        "nome": "FINANCEIRO",
+        "titulo": "Consolidadora Financeiro",
+        "descricao": "Planilha consolidada de acesso restrito",
+        "modelo": "modelo_financeiro.xlsx",
+        "arquivo_pronto": "planilha_financeiro.xlsx",
+        "arquivo_atualizacao": "ultima_atualizacao_financeiro.txt",
+        "env_key": "OMIE_APP_KEY",
+        "env_secret": "OMIE_APP_SECRET",
+        "download_name": "Consolidadora_Financeiro",
+        "restrito": True,
+    },
+}
 
 
-def gerar_planilha():
-    print("Iniciando atualização da planilha...")
+def agora_brasil():
+    return datetime.now(FUSO_BRASIL)
 
-    app_key = os.getenv("OMIE_APP_KEY")
-    app_secret = os.getenv("OMIE_APP_SECRET")
 
-    if not app_key or not app_secret:
-        raise Exception("Credenciais OMIE não configuradas nas variáveis do Railway.")
+def agora_formatado():
+    return agora_brasil().strftime("%d/%m/%Y %H:%M")
 
+
+def data_arquivo():
+    return agora_brasil().strftime("%d%m%y")
+
+
+def obter_ultima_atualizacao(config):
+    arquivo = config["arquivo_atualizacao"]
+
+    if os.path.exists(arquivo):
+        with open(arquivo, "r", encoding="utf-8") as f:
+            return f.read()
+
+    return "Ainda não atualizada"
+
+
+def status_relatorio(config):
+    existe = os.path.exists(config["arquivo_pronto"])
+    return {
+        "texto": "Disponível para download" if existe else "Ainda não gerada",
+        "cor": "#1f9d45" if existe else "#dc3545",
+        "existe": existe,
+        "ultima": obter_ultima_atualizacao(config),
+    }
+
+
+def buscar_clientes_omie(app_key, app_secret):
     linhas = []
     pagina = 1
     total_paginas = 1
@@ -36,9 +99,9 @@ def gerar_planilha():
                 {
                     "pagina": pagina,
                     "registros_por_pagina": 500,
-                    "apenas_importado_api": "N"
+                    "apenas_importado_api": "N",
                 }
-            ]
+            ],
         }
 
         response = requests.post(url, json=payload, timeout=60)
@@ -74,9 +137,37 @@ def gerar_planilha():
         pagina += 1
         time.sleep(0.2)
 
-    wb = load_workbook("modelo.xlsx")
-    ws = wb["BASE OMIE"]
+    return linhas
 
+
+def gerar_planilha(tipo):
+    if tipo not in RELATORIOS:
+        raise Exception("Relatório inválido.")
+
+    config = RELATORIOS[tipo]
+
+    print(f"Iniciando atualização da planilha {config['nome']}...")
+
+    app_key = os.getenv(config["env_key"])
+    app_secret = os.getenv(config["env_secret"])
+
+    if not app_key or not app_secret:
+        raise Exception(
+            f"Credenciais OMIE não configuradas para {config['nome']}. "
+            f"Verifique {config['env_key']} e {config['env_secret']} no Railway."
+        )
+
+    if not os.path.exists(config["modelo"]):
+        raise Exception(f"Modelo não encontrado: {config['modelo']}")
+
+    linhas = buscar_clientes_omie(app_key, app_secret)
+
+    wb = load_workbook(config["modelo"])
+
+    if "BASE OMIE" not in wb.sheetnames:
+        raise Exception(f"Aba 'BASE OMIE' não encontrada em {config['modelo']}")
+
+    ws = wb["BASE OMIE"]
     ws.sheet_state = "veryHidden"
     ws.delete_rows(1, ws.max_row)
 
@@ -95,37 +186,397 @@ def gerar_planilha():
     for linha in linhas:
         ws.append(linha)
 
-    wb.save(ARQUIVO_PRONTO)
+    wb.save(config["arquivo_pronto"])
 
-    agora = datetime.now().strftime("%d/%m/%Y %H:%M")
-    with open(ARQUIVO_ATUALIZACAO, "w", encoding="utf-8") as f:
-        f.write(agora)
+    with open(config["arquivo_atualizacao"], "w", encoding="utf-8") as f:
+        f.write(agora_formatado())
 
-    print("Planilha atualizada com sucesso!")
+    print(f"Planilha {config['nome']} atualizada com sucesso!")
 
 
-scheduler = BackgroundScheduler()
-scheduler.add_job(gerar_planilha, "interval", hours=1)
+def gerar_todos_relatorios():
+    for tipo in RELATORIOS:
+        try:
+            gerar_planilha(tipo)
+        except Exception as erro:
+            print(f"Erro ao atualizar {tipo}: {erro}")
+
+
+scheduler = BackgroundScheduler(timezone="America/Sao_Paulo")
+scheduler.add_job(gerar_todos_relatorios, "interval", hours=1)
 scheduler.start()
+
+
+def card_relatorio(tipo, config):
+    status = status_relatorio(config)
+
+    if config["restrito"]:
+        botao_baixar = f"""
+            <a href="/acessar/{tipo}" style="text-decoration:none;">
+                <button class="btn btn-dark">🔒 Acessar</button>
+            </a>
+        """
+    else:
+        botao_baixar = f"""
+            <a href="/baixar/{tipo}" style="text-decoration:none;">
+                <button class="btn btn-dark">⬇️ Baixar</button>
+            </a>
+        """
+
+    return f"""
+        <div class="card">
+            <div class="card-icon">{'🔒' if config['restrito'] else '📄'}</div>
+
+            <div class="card-tag">{config['nome']}</div>
+
+            <h2>{config['titulo']}</h2>
+
+            <p class="desc">{config['descricao']}</p>
+
+            <div class="status" style="color:{status['cor']};">
+                {status['texto']}
+            </div>
+
+            <p class="ultima">
+                Última atualização:<br>
+                <span>{status['ultima']}</span>
+            </p>
+
+            <div class="actions">
+                {botao_baixar}
+
+                <a href="/atualizar/{tipo}" style="text-decoration:none;">
+                    <button class="btn btn-orange">🔄 Atualizar</button>
+                </a>
+            </div>
+        </div>
+    """
 
 
 @app.route("/")
 def home():
-    existe_planilha = os.path.exists(ARQUIVO_PRONTO)
-
-    if os.path.exists(ARQUIVO_ATUALIZACAO):
-        with open(ARQUIVO_ATUALIZACAO, "r", encoding="utf-8") as f:
-            ultima_atualizacao = f.read()
-    else:
-        ultima_atualizacao = "Ainda não atualizada"
-
-    status = "Disponível para download" if existe_planilha else "Ainda não gerada"
-    status_cor = "#1f9d45" if existe_planilha else "#dc3545"
+    cards = "".join(
+        card_relatorio(tipo, config)
+        for tipo, config in RELATORIOS.items()
+    )
 
     return f"""
     <html>
     <head>
-        <title>Portal Geniale</title>
+        <title>Portal de Relatórios</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <style>
+            * {{
+                box-sizing: border-box;
+            }}
+
+            body {{
+                margin: 0;
+                font-family: Arial, sans-serif;
+                background: #f5f5f5;
+                color: #1f1f1f;
+            }}
+
+            .topbar {{
+                height: 8px;
+                background: #ff8a00;
+            }}
+
+            main {{
+                min-height: calc(100vh - 180px);
+                padding: 46px 20px;
+                text-align: center;
+            }}
+
+            .logo {{
+                width: 230px;
+                max-width: 80%;
+                margin-bottom: 26px;
+            }}
+
+            h1 {{
+                font-size: 44px;
+                margin: 0;
+                font-weight: 800;
+            }}
+
+            h1 span {{
+                color: #ff8a00;
+            }}
+
+            .subtitle {{
+                font-size: 19px;
+                color: #555;
+                margin-top: 12px;
+                margin-bottom: 34px;
+            }}
+
+            .grid {{
+                width: 94%;
+                max-width: 1180px;
+                margin: 0 auto;
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+                gap: 24px;
+            }}
+
+            .card {{
+                background: white;
+                border-radius: 22px;
+                padding: 34px 28px;
+                box-shadow: 0 16px 40px rgba(0,0,0,0.12);
+                border: 1px solid #e8e8e8;
+            }}
+
+            .card-icon {{
+                font-size: 42px;
+                color: #ff8a00;
+                margin-bottom: 12px;
+            }}
+
+            .card-tag {{
+                font-size: 13px;
+                color: #777;
+                letter-spacing: 1.5px;
+                font-weight: bold;
+                text-transform: uppercase;
+                margin-bottom: 8px;
+            }}
+
+            .card h2 {{
+                font-size: 25px;
+                margin: 0 0 10px;
+                font-weight: 800;
+            }}
+
+            .desc {{
+                color: #666;
+                font-size: 15px;
+                min-height: 42px;
+                margin-bottom: 22px;
+            }}
+
+            .status {{
+                font-size: 20px;
+                font-weight: 800;
+                margin-top: 12px;
+            }}
+
+            .ultima {{
+                color: #666;
+                font-size: 14px;
+                margin-top: 10px;
+                margin-bottom: 24px;
+                line-height: 1.5;
+            }}
+
+            .ultima span {{
+                color: #ff8a00;
+                font-weight: bold;
+            }}
+
+            .actions {{
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }}
+
+            .btn {{
+                width: 100%;
+                font-size: 18px;
+                padding: 17px 22px;
+                color: white;
+                border: none;
+                border-radius: 14px;
+                cursor: pointer;
+                font-weight: bold;
+            }}
+
+            .btn-dark {{
+                background: #1f1f1f;
+                box-shadow: 0 12px 24px rgba(0,0,0,0.22);
+            }}
+
+            .btn-orange {{
+                background: #ff8a00;
+                box-shadow: 0 12px 24px rgba(255,138,0,0.28);
+            }}
+
+            .info {{
+                width: 94%;
+                max-width: 1180px;
+                margin: 28px auto 0;
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                background: white;
+                border-radius: 18px;
+                border: 1px solid #e8e8e8;
+                overflow: hidden;
+                box-shadow: 0 10px 28px rgba(0,0,0,0.08);
+            }}
+
+            .info-item {{
+                padding: 24px;
+                border-right: 1px solid #eee;
+            }}
+
+            .info-item:last-child {{
+                border-right: none;
+            }}
+
+            .info-icon {{
+                font-size: 32px;
+                color: #ff8a00;
+            }}
+
+            .info p {{
+                color: #666;
+                margin-bottom: 0;
+            }}
+
+            footer {{
+                background: #1f1f1f;
+                color: white;
+                padding: 36px 20px;
+                border-top: 6px solid #ff8a00;
+                text-align: center;
+            }}
+
+            footer img {{
+                width: 150px;
+                background: white;
+                padding: 8px;
+                border-radius: 12px;
+                margin-bottom: 16px;
+            }}
+
+            footer .name {{
+                font-size: 17px;
+                font-weight: bold;
+                margin: 8px 0;
+            }}
+
+            footer .text {{
+                color: #cfcfcf;
+                margin: 0;
+            }}
+        </style>
+    </head>
+
+    <body>
+        <div class="topbar"></div>
+
+        <main>
+            <img src="/static/logo.png" class="logo">
+
+            <h1>Portal de <span>Relatórios</span></h1>
+
+            <p class="subtitle">
+                Planilhas automatizadas integradas ao OMIE
+            </p>
+
+            <div class="grid">
+                {cards}
+            </div>
+
+            <div class="info">
+                <div class="info-item">
+                    <div class="info-icon">⏱️</div>
+                    <strong>Atualização Automática</strong>
+                    <p>A cada 1 hora</p>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-icon">🛡️</div>
+                    <strong>Dados Seguros</strong>
+                    <p>Credenciais protegidas no Railway</p>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-icon">⚡</div>
+                    <strong>Download Rápido</strong>
+                    <p>Arquivo pronto para baixar</p>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <img src="/static/logo.png">
+
+            <p class="name">
+                Portal Corporativo de Relatórios
+            </p>
+
+            <p class="text">
+                Geniale | Paniz | Financeiro
+            </p>
+        </footer>
+    </body>
+    </html>
+    """
+
+
+@app.route("/baixar/<tipo>")
+def baixar(tipo):
+    if tipo not in RELATORIOS:
+        return "Relatório inválido.", 404
+
+    config = RELATORIOS[tipo]
+
+    if config["restrito"]:
+        return redirect(url_for("acessar", tipo=tipo))
+
+    if not os.path.exists(config["arquivo_pronto"]):
+        return pagina_erro(
+            "A planilha ainda não foi gerada.",
+            "Clique em Atualizar para gerar a primeira versão."
+        )
+
+    return send_file(
+        config["arquivo_pronto"],
+        as_attachment=True,
+        download_name=f"{config['download_name']}_{data_arquivo()}.xlsx"
+    )
+
+
+@app.route("/acessar/<tipo>", methods=["GET", "POST"])
+def acessar(tipo):
+    if tipo not in RELATORIOS:
+        return "Relatório inválido.", 404
+
+    config = RELATORIOS[tipo]
+
+    if not config["restrito"]:
+        return redirect(url_for("baixar", tipo=tipo))
+
+    erro = ""
+
+    if request.method == "POST":
+        senha_digitada = request.form.get("senha", "")
+        senha_correta = os.getenv("FINANCEIRO_PASSWORD")
+
+        if not senha_correta:
+            erro = "Senha do Financeiro não configurada no Railway."
+        elif senha_digitada == senha_correta:
+            if not os.path.exists(config["arquivo_pronto"]):
+                return pagina_erro(
+                    "A planilha ainda não foi gerada.",
+                    "Clique em Atualizar para gerar a primeira versão."
+                )
+
+            return send_file(
+                config["arquivo_pronto"],
+                as_attachment=True,
+                download_name=f"{config['download_name']}_{data_arquivo()}.xlsx"
+            )
+        else:
+            erro = "Senha incorreta."
+
+    return f"""
+    <html>
+    <head>
+        <title>Acesso Restrito</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
 
@@ -133,213 +584,101 @@ def home():
         margin:0;
         font-family:Arial, sans-serif;
         background:#f5f5f5;
-        color:#1f1f1f;
+        min-height:100vh;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        text-align:center;
     ">
 
-        <div style="height:8px;background:#ff8a00;"></div>
-
-        <main style="
-            min-height:calc(100vh - 180px);
-            padding:48px 20px;
-            text-align:center;
+        <div style="
+            background:white;
+            width:90%;
+            max-width:460px;
+            border-radius:22px;
+            padding:42px 36px;
+            box-shadow:0 18px 40px rgba(0,0,0,0.16);
+            border:1px solid #e8e8e8;
         ">
 
             <img src="/static/logo.png" style="
-                width:230px;
+                width:180px;
                 max-width:80%;
-                margin-bottom:30px;
+                margin-bottom:22px;
             ">
 
             <h1 style="
-                font-size:44px;
-                margin:0;
-                font-weight:800;
+                color:#ff8a00;
+                font-size:32px;
+                margin-bottom:10px;
             ">
-                Portal de <span style="color:#ff8a00;">Relatórios</span>
+                Acesso Restrito
             </h1>
 
             <p style="
-                font-size:19px;
-                color:#555;
-                margin-top:12px;
-                margin-bottom:34px;
+                color:#666;
+                font-size:16px;
+                margin-bottom:24px;
             ">
-                Planilhas automatizadas integradas ao OMIE
+                Informe a senha para baixar a Consolidadora Financeiro.
             </p>
 
-            <div style="
-                width:90%;
-                max-width:760px;
-                margin:0 auto;
-                background:white;
-                border-radius:22px;
-                padding:38px 34px;
-                box-shadow:0 16px 40px rgba(0,0,0,0.12);
-                border:1px solid #e8e8e8;
-            ">
-
-                <div style="
-                    font-size:46px;
-                    color:#ff8a00;
-                    margin-bottom:14px;
+            <form method="POST">
+                <input type="password" name="senha" placeholder="Digite a senha" style="
+                    width:100%;
+                    font-size:18px;
+                    padding:16px;
+                    border-radius:12px;
+                    border:1px solid #ddd;
+                    margin-bottom:16px;
+                    text-align:center;
                 ">
-                    📄
-                </div>
 
-                <div style="
-                    font-size:13px;
-                    color:#777;
-                    letter-spacing:1.5px;
+                <button type="submit" style="
+                    width:100%;
+                    font-size:18px;
+                    padding:16px 24px;
+                    background:#1f1f1f;
+                    color:white;
+                    border:none;
+                    border-radius:14px;
+                    cursor:pointer;
                     font-weight:bold;
-                    text-transform:uppercase;
                 ">
-                    Status da planilha
-                </div>
+                    Baixar Planilha
+                </button>
+            </form>
 
-                <div style="
-                    font-size:25px;
-                    color:{status_cor};
-                    font-weight:800;
-                    margin-top:10px;
-                ">
-                    {status}
-                </div>
-
-                <p style="
-                    color:#666;
-                    font-size:15px;
-                    margin-top:10px;
-                    margin-bottom:32px;
-                ">
-                    Última atualização: <span style="color:#ff8a00;font-weight:bold;">{ultima_atualizacao}</span>
-                </p>
-
-                <a href="/baixar" style="text-decoration:none;">
-                    <button style="
-                        width:100%;
-                        max-width:560px;
-                        font-size:22px;
-                        padding:22px 26px;
-                        background:#1f1f1f;
-                        color:white;
-                        border:none;
-                        border-radius:14px;
-                        cursor:pointer;
-                        font-weight:bold;
-                        box-shadow:0 12px 24px rgba(0,0,0,0.22);
-                        margin-bottom:18px;
-                    ">
-                        ⬇️ Baixar Planilha
-                    </button>
-                </a>
-
-                <a href="/atualizar" style="text-decoration:none;">
-                    <button style="
-                        width:100%;
-                        max-width:560px;
-                        font-size:21px;
-                        padding:20px 26px;
-                        background:#ff8a00;
-                        color:white;
-                        border:none;
-                        border-radius:14px;
-                        cursor:pointer;
-                        font-weight:bold;
-                        box-shadow:0 12px 24px rgba(255,138,0,0.28);
-                    ">
-                        🔄 Atualizar Agora
-                    </button>
-                </a>
-
-            </div>
-
-            <div style="
-                width:90%;
-                max-width:760px;
-                margin:26px auto 0;
-                display:grid;
-                grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
-                background:white;
-                border-radius:18px;
-                border:1px solid #e8e8e8;
-                overflow:hidden;
-                box-shadow:0 10px 28px rgba(0,0,0,0.08);
-            ">
-
-                <div style="padding:24px;">
-                    <div style="font-size:32px;color:#ff8a00;">⏱️</div>
-                    <strong>Atualização Automática</strong>
-                    <p style="color:#666;margin-bottom:0;">A cada 1 hora</p>
-                </div>
-
-                <div style="padding:24px;border-left:1px solid #eee;border-right:1px solid #eee;">
-                    <div style="font-size:32px;color:#ff8a00;">🛡️</div>
-                    <strong>Dados Seguros</strong>
-                    <p style="color:#666;margin-bottom:0;">Integração direta com OMIE</p>
-                </div>
-
-                <div style="padding:24px;">
-                    <div style="font-size:32px;color:#ff8a00;">⚡</div>
-                    <strong>Rápido e Prático</strong>
-                    <p style="color:#666;margin-bottom:0;">Download da última versão</p>
-                </div>
-
-            </div>
-
-        </main>
-
-        <footer style="
-            background:#1f1f1f;
-            color:white;
-            padding:36px 20px;
-            border-top:6px solid #ff8a00;
-            text-align:center;
-        ">
-            <img src="/static/logo.png" style="
-                width:150px;
-                background:white;
-                padding:8px;
-                border-radius:12px;
-                margin-bottom:16px;
-            ">
-
-            <p style="font-size:17px;font-weight:bold;margin:8px 0;">
-                Geniale Promoção Eventos e Merchandising
+            <p style="color:#dc3545;font-weight:bold;margin-top:18px;">
+                {erro}
             </p>
 
-            <p style="color:#cfcfcf;margin:0;">
-                Transformamos ideias em experiências que geram resultados.
-            </p>
-        </footer>
+            <a href="/" style="color:#ff8a00;font-weight:bold;text-decoration:none;">
+                Voltar ao Portal
+            </a>
+        </div>
 
     </body>
     </html>
     """
 
 
-@app.route("/baixar")
-def baixar():
-    if not os.path.exists(ARQUIVO_PRONTO):
-        return """
-        <h1>A planilha ainda não foi gerada.</h1>
-        <p>Clique em "Atualizar Agora" para gerar a primeira versão.</p>
-        <a href="/">Voltar</a>
-        """
+@app.route("/atualizar/<tipo>")
+def atualizar(tipo):
+    if tipo not in RELATORIOS:
+        return "Relatório inválido.", 404
 
-    data_hoje = datetime.now().strftime("%d%m%y")
+    try:
+        gerar_planilha(tipo)
+    except Exception as erro:
+        return pagina_erro(
+            "Erro ao atualizar a planilha.",
+            str(erro)
+        )
 
-    return send_file(
-        ARQUIVO_PRONTO,
-        as_attachment=True,
-        download_name=f"Pagamentos{data_hoje}.xlsx"
-    )
+    config = RELATORIOS[tipo]
 
-
-@app.route("/atualizar")
-def atualizar():
-    gerar_planilha()
-
-    return """
+    return f"""
     <html>
     <head>
         <title>Planilha Atualizada</title>
@@ -377,7 +716,7 @@ def atualizar():
                 font-size:32px;
                 margin-bottom:12px;
             ">
-                Planilha atualizada com sucesso!
+                {config['nome']} atualizada com sucesso!
             </h1>
 
             <p style="
@@ -386,6 +725,73 @@ def atualizar():
                 margin-bottom:28px;
             ">
                 A versão mais recente já está disponível para download.
+            </p>
+
+            <a href="/" style="text-decoration:none;">
+                <button style="
+                    width:100%;
+                    font-size:18px;
+                    padding:16px 24px;
+                    background:#1f1f1f;
+                    color:white;
+                    border:none;
+                    border-radius:14px;
+                    cursor:pointer;
+                    font-weight:bold;
+                ">
+                    Voltar ao Portal
+                </button>
+            </a>
+
+        </div>
+
+    </body>
+    </html>
+    """
+
+
+def pagina_erro(titulo, mensagem):
+    return f"""
+    <html>
+    <head>
+        <title>Erro</title>
+    </head>
+
+    <body style="
+        margin:0;
+        font-family:Arial, sans-serif;
+        background:#f5f5f5;
+        min-height:100vh;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        text-align:center;
+    ">
+
+        <div style="
+            background:white;
+            width:90%;
+            max-width:520px;
+            border-radius:22px;
+            padding:42px 36px;
+            box-shadow:0 18px 40px rgba(0,0,0,0.16);
+            border:1px solid #e8e8e8;
+        ">
+
+            <h1 style="
+                color:#dc3545;
+                font-size:30px;
+                margin-bottom:12px;
+            ">
+                {titulo}
+            </h1>
+
+            <p style="
+                color:#666;
+                font-size:16px;
+                margin-bottom:28px;
+            ">
+                {mensagem}
             </p>
 
             <a href="/" style="text-decoration:none;">
