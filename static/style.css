@@ -197,6 +197,39 @@ main{
         0 22px 60px rgba(0,0,0,0.4);
 }
 
+.card-updating{
+    border-color:rgba(255,179,71,0.45);
+    box-shadow:
+        0 0 0 1px rgba(255,179,71,0.16),
+        0 22px 70px rgba(255,138,0,0.20),
+        0 16px 50px rgba(0,0,0,0.32);
+}
+
+.card-updating::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    background:
+        linear-gradient(
+            120deg,
+            transparent 0%,
+            rgba(255,179,71,0.08) 45%,
+            transparent 70%
+        );
+    animation:shine 2.2s infinite;
+}
+
+@keyframes shine{
+    0%{
+        transform:translateX(-100%);
+    }
+
+    100%{
+        transform:translateX(100%);
+    }
+}
+
 .card-corner{
     position:absolute;
     top:-90px;
@@ -233,6 +266,11 @@ main{
         );
     font-size:30px;
     margin-bottom:26px;
+}
+
+.card-content{
+    position:relative;
+    z-index:2;
 }
 
 .card-subtitle{
@@ -272,6 +310,7 @@ main{
     width:12px;
     height:12px;
     border-radius:50%;
+    flex-shrink:0;
 }
 
 .status-dot.ok{
@@ -280,10 +319,40 @@ main{
         0 0 12px #35d07f;
 }
 
-.status-dot.erro{
-    background:#ff8a00;
+.status-dot.pendente{
+    background:#8f97a8;
     box-shadow:
-        0 0 12px #ff8a00;
+        0 0 12px rgba(143,151,168,0.6);
+}
+
+.status-dot.erro{
+    background:#ff7373;
+    box-shadow:
+        0 0 12px #ff7373;
+}
+
+.status-dot.atualizando{
+    background:#ffb347;
+    box-shadow:
+        0 0 12px #ffb347;
+    animation:pulseStatus 1.2s infinite;
+}
+
+@keyframes pulseStatus{
+    0%{
+        transform:scale(1);
+        opacity:1;
+    }
+
+    50%{
+        transform:scale(1.45);
+        opacity:0.55;
+    }
+
+    100%{
+        transform:scale(1);
+        opacity:1;
+    }
 }
 
 .status-text{
@@ -331,6 +400,13 @@ main{
     transform:translateY(-2px);
 }
 
+.btn:disabled{
+    cursor:not-allowed;
+    opacity:0.48;
+    transform:none;
+    filter:grayscale(0.2);
+}
+
 .btn-dark{
     background:
         linear-gradient(
@@ -343,10 +419,22 @@ main{
         0 12px 28px rgba(255,138,0,0.28);
 }
 
+.btn-dark:disabled{
+    background:rgba(255,255,255,0.08);
+    color:#8f97a8;
+    box-shadow:none;
+}
+
 .btn-light{
     background:rgba(255,255,255,0.05);
     color:white;
     border:1px solid rgba(255,255,255,0.08);
+}
+
+.btn-light:disabled{
+    background:rgba(255,179,71,0.10);
+    color:#ffb347;
+    border-color:rgba(255,179,71,0.20);
 }
 
 .features{

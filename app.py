@@ -1,11 +1,32 @@
-from flask import Flask, send_file, request, redirect, url_for, render_template
+from flask import (
+    Flask,
+    send_file,
+    request,
+    redirect,
+    url_for,
+    render_template,
+    jsonify,
+)
+
 import requests
-from requests.exceptions import Timeout, RequestException
+
+from requests.exceptions import (
+    Timeout,
+    RequestException,
+)
+
 from openpyxl import load_workbook
+
 from datetime import datetime
+
 from zoneinfo import ZoneInfo
-from apscheduler.schedulers.background import BackgroundScheduler
+
+from apscheduler.schedulers.background import (
+    BackgroundScheduler,
+)
+
 from threading import Thread, Lock
+
 import time
 import os
 
@@ -32,6 +53,7 @@ RELATORIOS = {
         "logo": "logo.png",
         "classe": "geniale",
     },
+
     "paniz": {
         "nome": "PANIZ",
         "titulo": "Planilha de Pagamento",
@@ -47,6 +69,7 @@ RELATORIOS = {
         "logo": "logo_paniz.png",
         "classe": "paniz",
     },
+
     "financeiro": {
         "nome": "FINANCEIRO",
         "titulo": "Consolidadora Financeiro",
@@ -70,7 +93,7 @@ def agora_brasil():
 
 
 def agora_formatado():
-    return agora_brasil().strftime("%d/%m/%Y %H:%M")
+    return agora_brasil().strftime("%d/%m/%Y %H:%M:%S")
 
 
 def data_arquivo():
@@ -103,7 +126,11 @@ def obter_ultima_atualizacao(config):
 
 
 def obter_status(tipo, config):
-    status_interno = ler_arquivo(config["arquivo_status"], "")
+
+    status_interno = ler_arquivo(
+        config["arquivo_status"],
+        ""
+    )
 
     if status_interno == "atualizando":
         return {
@@ -124,27 +151,55 @@ def obter_status(tipo, config):
     existe = os.path.exists(config["arquivo_pronto"])
 
     return {
-        "texto": "Disponível para download" if existe else "Ainda não gerada",
-        "cor": "ok" if existe else "pendente",
+        "texto": (
+            "Disponível para download"
+            if existe
+            else "Ainda não gerada"
+        ),
+
+        "cor": (
+            "ok"
+            if existe
+            else "pendente"
+        ),
+
         "existe": existe,
+
         "ultima": obter_ultima_atualizacao(config),
     }
 
 
 def montar_relatorios_para_tela():
+
     lista = []
 
     for tipo, config in RELATORIOS.items():
+
         item = dict(config)
+
         item["tipo"] = tipo
-        item["status"] = obter_status(tipo, config)
+
+        item["status"] = obter_status(
+            tipo,
+            config
+        )
+
         lista.append(item)
 
     return lista
 
 
-def buscar_pagina_omie(app_key, app_secret, pagina, tentativa_maxima=3):
-    url = "https://app.omie.com.br/api/v1/geral/clientes/"
+def buscar_pagina_omie(
+    app_key,
+    app_secret,
+    pagina,
+    tentativa_maxima=3,
+):
+
+    url = (
+        "https://app.omie.com.br/"
+        "api/v1/geral/clientes/"
+    )
 
     payload = {
         "call": "ListarClientes",
@@ -159,8 +214,13 @@ def buscar_pagina_omie(app_key, app_secret, pagina, tentativa_maxima=3):
         ],
     }
 
-    for tentativa in range(1, tentativa_maxima + 1):
+    for tentativa in range(
+        1,
+        tentativa_maxima + 1
+    ):
+
         try:
+
             response = requests.post(
                 url,
                 json=payload,
@@ -168,66 +228,140 @@ def buscar_pagina_omie(app_key, app_secret, pagina, tentativa_maxima=3):
             )
 
             if response.status_code == 429:
+
                 espera = tentativa * 5
+
                 print(
-                    f"Limite OMIE atingido na página {pagina}. "
+                    f"Limite OMIE página {pagina}. "
                     f"Aguardando {espera}s..."
                 )
+
                 time.sleep(espera)
+
                 continue
 
             response.raise_for_status()
+
             return response.json()
 
         except Timeout:
+
             espera = tentativa * 5
+
             print(
-                f"Timeout na página {pagina}. "
-                f"Tentativa {tentativa}/{tentativa_maxima}. "
-                f"Aguardando {espera}s..."
+                f"Timeout página {pagina}. "
+                f"Tentativa {tentativa}."
             )
+
             time.sleep(espera)
 
         except RequestException as erro:
+
             espera = tentativa * 5
+
             print(
-                f"Erro de conexão na página {pagina}: {erro}. "
-                f"Tentativa {tentativa}/{tentativa_maxima}. "
-                f"Aguardando {espera}s..."
+                f"Erro conexão página {pagina}: "
+                f"{erro}"
             )
+
             time.sleep(espera)
 
     raise Exception(
-        f"Falha ao consultar OMIE na página {pagina} "
-        f"após {tentativa_maxima} tentativas."
+        f"Falha OMIE página {pagina}"
     )
 
 
-def buscar_clientes_omie(app_key, app_secret):
+def buscar_clientes_omie(
+    app_key,
+    app_secret
+):
+
     linhas = []
+
     pagina = 1
     total_paginas = 1
 
     while pagina <= total_paginas:
-        dados = buscar_pagina_omie(app_key, app_secret, pagina)
 
-        total_paginas = dados.get("total_de_paginas", 1)
-        clientes = dados.get("clientes_cadastro", [])
+        dados = buscar_pagina_omie(
+            app_key,
+            app_secret,
+            pagina
+        )
 
-        print(f"Página {pagina}/{total_paginas} carregada...")
+        total_paginas = dados.get(
+            "total_de_paginas",
+            1
+        )
+
+        clientes = dados.get(
+            "clientes_cadastro",
+            []
+        )
+
+        print(
+            f"Página {pagina}/"
+            f"{total_paginas}"
+        )
 
         for cliente in clientes:
-            linha = [""] * 65
-            dados_bancarios = cliente.get("dadosBancarios", {})
 
-            linha[1] = cliente.get("cnpj_cpf") or "N/D"
-            linha[2] = cliente.get("razao_social") or "N/D"
-            linha[17] = cliente.get("website") or "N/D"
-            linha[18] = dados_bancarios.get("codigo_banco") or "N/D"
-            linha[19] = dados_bancarios.get("agencia") or "N/D"
-            linha[20] = dados_bancarios.get("conta_corrente") or "N/D"
-            linha[22] = dados_bancarios.get("nome_titular") or "N/D"
-            linha[64] = dados_bancarios.get("cChavePix") or "N/D"
+            linha = [""] * 65
+
+            dados_bancarios = cliente.get(
+                "dadosBancarios",
+                {}
+            )
+
+            linha[1] = (
+                cliente.get("cnpj_cpf")
+                or "N/D"
+            )
+
+            linha[2] = (
+                cliente.get("razao_social")
+                or "N/D"
+            )
+
+            linha[17] = (
+                cliente.get("website")
+                or "N/D"
+            )
+
+            linha[18] = (
+                dados_bancarios.get(
+                    "codigo_banco"
+                )
+                or "N/D"
+            )
+
+            linha[19] = (
+                dados_bancarios.get(
+                    "agencia"
+                )
+                or "N/D"
+            )
+
+            linha[20] = (
+                dados_bancarios.get(
+                    "conta_corrente"
+                )
+                or "N/D"
+            )
+
+            linha[22] = (
+                dados_bancarios.get(
+                    "nome_titular"
+                )
+                or "N/D"
+            )
+
+            linha[64] = (
+                dados_bancarios.get(
+                    "cChavePix"
+                )
+                or "N/D"
+            )
 
             linhas.append(linha)
 
@@ -236,52 +370,99 @@ def buscar_clientes_omie(app_key, app_secret):
     return linhas
 
 
-def salvar_workbook_com_segurança(wb, arquivo_final):
-    arquivo_temporario = f"{arquivo_final}.tmp.xlsx"
+def salvar_workbook_com_segurança(
+    wb,
+    arquivo_final
+):
 
-    if os.path.exists(arquivo_temporario):
-        os.remove(arquivo_temporario)
+    arquivo_temporario = (
+        f"{arquivo_final}.tmp.xlsx"
+    )
+
+    if os.path.exists(
+        arquivo_temporario
+    ):
+        os.remove(
+            arquivo_temporario
+        )
 
     wb.save(arquivo_temporario)
 
-    if not os.path.exists(arquivo_temporario):
-        raise Exception("Arquivo temporário não foi gerado corretamente.")
+    if not os.path.exists(
+        arquivo_temporario
+    ):
+        raise Exception(
+            "Arquivo temporário não gerado."
+        )
 
-    os.replace(arquivo_temporario, arquivo_final)
+    os.replace(
+        arquivo_temporario,
+        arquivo_final
+    )
 
 
 def gerar_planilha(tipo):
+
     if tipo not in RELATORIOS:
-        raise Exception("Relatório inválido.")
+        raise Exception(
+            "Relatório inválido."
+        )
 
     config = RELATORIOS[tipo]
 
-    print(f"Iniciando atualização da planilha {config['nome']}...")
+    print(
+        f"Iniciando atualização "
+        f"{config['nome']}"
+    )
 
-    app_key = os.getenv(config["env_key"])
-    app_secret = os.getenv(config["env_secret"])
+    app_key = os.getenv(
+        config["env_key"]
+    )
+
+    app_secret = os.getenv(
+        config["env_secret"]
+    )
 
     if not app_key or not app_secret:
+
         raise Exception(
-            f"Credenciais OMIE não configuradas para {config['nome']}. "
-            f"Verifique {config['env_key']} e {config['env_secret']} no Railway."
+            f"Credenciais OMIE "
+            f"não configuradas."
         )
 
-    if not os.path.exists(config["modelo"]):
-        raise Exception(f"Modelo não encontrado: {config['modelo']}")
+    if not os.path.exists(
+        config["modelo"]
+    ):
+        raise Exception(
+            f"Modelo não encontrado."
+        )
 
-    linhas = buscar_clientes_omie(app_key, app_secret)
+    linhas = buscar_clientes_omie(
+        app_key,
+        app_secret
+    )
 
-    wb = load_workbook(config["modelo"])
+    wb = load_workbook(
+        config["modelo"]
+    )
 
     if "BASE OMIE" not in wb.sheetnames:
-        raise Exception(f"Aba 'BASE OMIE' não encontrada em {config['modelo']}")
+
+        raise Exception(
+            "Aba BASE OMIE não encontrada."
+        )
 
     ws = wb["BASE OMIE"]
+
     ws.sheet_state = "veryHidden"
-    ws.delete_rows(1, ws.max_row)
+
+    ws.delete_rows(
+        1,
+        ws.max_row
+    )
 
     cabecalhos = [""] * 65
+
     cabecalhos[1] = "CNPJ/CPF"
     cabecalhos[2] = "Razão Social"
     cabecalhos[17] = "Website"
@@ -306,29 +487,56 @@ def gerar_planilha(tipo):
         agora_formatado()
     )
 
-    print(f"Planilha {config['nome']} atualizada com sucesso!")
+    print(
+        f"Planilha "
+        f"{config['nome']} "
+        f"atualizada!"
+    )
 
 
 def executar_atualizacao_background(tipo):
+
     try:
-        definir_status(tipo, "atualizando")
+
+        definir_status(
+            tipo,
+            "atualizando"
+        )
+
         gerar_planilha(tipo)
-        definir_status(tipo, "ok")
+
+        definir_status(
+            tipo,
+            "ok"
+        )
 
     except Exception as erro:
-        print(f"Erro ao atualizar {tipo}: {erro}")
-        definir_status(tipo, f"erro: {erro}")
+
+        print(
+            f"Erro atualizar "
+            f"{tipo}: {erro}"
+        )
+
+        definir_status(
+            tipo,
+            f"erro: {erro}"
+        )
 
     finally:
+
         with jobs_lock:
             jobs_em_execucao[tipo] = False
 
 
 def iniciar_atualizacao_background(tipo):
+
     if tipo not in RELATORIOS:
-        raise Exception("Relatório inválido.")
+        raise Exception(
+            "Relatório inválido."
+        )
 
     with jobs_lock:
+
         if jobs_em_execucao.get(tipo):
             return False
 
@@ -339,19 +547,28 @@ def iniciar_atualizacao_background(tipo):
         args=(tipo,),
         daemon=True
     )
+
     thread.start()
 
     return True
 
 
 def atualizar_agendado(tipo):
+
     try:
         iniciar_atualizacao_background(tipo)
+
     except Exception as erro:
-        print(f"Erro ao iniciar atualização agendada de {tipo}: {erro}")
+
+        print(
+            f"Erro agendamento "
+            f"{tipo}: {erro}"
+        )
 
 
-scheduler = BackgroundScheduler(timezone="America/Sao_Paulo")
+scheduler = BackgroundScheduler(
+    timezone="America/Sao_Paulo"
+)
 
 scheduler.add_job(
     lambda: atualizar_agendado("geniale"),
@@ -379,6 +596,7 @@ scheduler.start()
 
 @app.route("/")
 def home():
+
     return render_template(
         "index.html",
         relatorios=montar_relatorios_para_tela(),
@@ -386,9 +604,61 @@ def home():
     )
 
 
+@app.route("/api/status")
+def api_status():
+
+    return jsonify(
+        montar_relatorios_para_tela()
+    )
+
+
+@app.route("/api/atualizar/<tipo>")
+def api_atualizar(tipo):
+
+    if tipo not in RELATORIOS:
+
+        return jsonify({
+            "sucesso": False,
+            "mensagem": "Relatório inválido."
+        })
+
+    try:
+
+        iniciado = iniciar_atualizacao_background(
+            tipo
+        )
+
+        if iniciado:
+
+            return jsonify({
+                "sucesso": True,
+                "mensagem": (
+                    f"{RELATORIOS[tipo]['nome']} "
+                    f"em atualização."
+                )
+            })
+
+        return jsonify({
+            "sucesso": False,
+            "mensagem": (
+                f"{RELATORIOS[tipo]['nome']} "
+                f"já está atualizando."
+            )
+        })
+
+    except Exception as erro:
+
+        return jsonify({
+            "sucesso": False,
+            "mensagem": str(erro)
+        })
+
+
 @app.route("/baixar/<tipo>")
 def baixar(tipo):
+
     if tipo not in RELATORIOS:
+
         return render_template(
             "erro.html",
             titulo="Relatório inválido",
@@ -398,25 +668,45 @@ def baixar(tipo):
     config = RELATORIOS[tipo]
 
     if config["restrito"]:
-        return redirect(url_for("acessar", tipo=tipo))
+        return redirect(
+            url_for(
+                "acessar",
+                tipo=tipo
+            )
+        )
 
-    if not os.path.exists(config["arquivo_pronto"]):
+    if not os.path.exists(
+        config["arquivo_pronto"]
+    ):
+
         return render_template(
             "erro.html",
             titulo="A planilha ainda não foi gerada.",
-            mensagem="Clique em Atualizar para gerar a primeira versão.",
+            mensagem=(
+                "Clique em Atualizar "
+                "para gerar."
+            ),
         )
 
     return send_file(
         config["arquivo_pronto"],
         as_attachment=True,
-        download_name=f"{config['download_name']}_{data_arquivo()}.xlsx",
+        download_name=(
+            f"{config['download_name']}_"
+            f"{data_arquivo()}.xlsx"
+        ),
     )
 
 
-@app.route("/acessar/<tipo>", methods=["GET", "POST"])
+@app.route(
+    "/acessar/<tipo>",
+    methods=["GET", "POST"]
+)
+
 def acessar(tipo):
+
     if tipo not in RELATORIOS:
+
         return render_template(
             "erro.html",
             titulo="Relatório inválido",
@@ -426,29 +716,56 @@ def acessar(tipo):
     config = RELATORIOS[tipo]
 
     if not config["restrito"]:
-        return redirect(url_for("baixar", tipo=tipo))
+
+        return redirect(
+            url_for(
+                "baixar",
+                tipo=tipo
+            )
+        )
 
     erro = ""
 
     if request.method == "POST":
-        senha_digitada = request.form.get("senha", "")
-        senha_correta = os.getenv("FINANCEIRO_PASSWORD")
+
+        senha_digitada = request.form.get(
+            "senha",
+            ""
+        )
+
+        senha_correta = os.getenv(
+            "FINANCEIRO_PASSWORD"
+        )
 
         if not senha_correta:
-            erro = "Senha do Financeiro não configurada no Railway."
+
+            erro = (
+                "Senha Financeiro "
+                "não configurada."
+            )
 
         elif senha_digitada == senha_correta:
-            if not os.path.exists(config["arquivo_pronto"]):
+
+            if not os.path.exists(
+                config["arquivo_pronto"]
+            ):
+
                 return render_template(
                     "erro.html",
                     titulo="A planilha ainda não foi gerada.",
-                    mensagem="Clique em Atualizar para gerar a primeira versão.",
+                    mensagem=(
+                        "Clique em Atualizar "
+                        "para gerar."
+                    ),
                 )
 
             return send_file(
                 config["arquivo_pronto"],
                 as_attachment=True,
-                download_name=f"{config['download_name']}_{data_arquivo()}.xlsx",
+                download_name=(
+                    f"{config['download_name']}_"
+                    f"{data_arquivo()}.xlsx"
+                ),
             )
 
         else:
@@ -459,43 +776,6 @@ def acessar(tipo):
         tipo=tipo,
         relatorio=config,
         erro=erro,
-    )
-
-
-@app.route("/atualizar/<tipo>")
-def atualizar(tipo):
-    if tipo not in RELATORIOS:
-        return render_template(
-            "erro.html",
-            titulo="Relatório inválido",
-            mensagem="O relatório solicitado não existe.",
-        ), 404
-
-    try:
-        iniciado = iniciar_atualizacao_background(tipo)
-
-    except Exception as erro:
-        return render_template(
-            "erro.html",
-            titulo="Erro ao iniciar atualização.",
-            mensagem=str(erro),
-        )
-
-    if iniciado:
-        mensagem = (
-            f"A atualização da planilha {RELATORIOS[tipo]['nome']} "
-            f"foi iniciada em segundo plano."
-        )
-    else:
-        mensagem = (
-            f"A planilha {RELATORIOS[tipo]['nome']} "
-            f"já está sendo atualizada."
-        )
-
-    return render_template(
-        "sucesso.html",
-        relatorio=RELATORIOS[tipo],
-        mensagem=mensagem,
     )
 
 
