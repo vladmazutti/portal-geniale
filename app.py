@@ -710,7 +710,7 @@ def acessar(tipo):
 
     erro = ""
 
-    if request.method == "POST:
+    if request.method == "POST":
         senha_digitada = request.form.get("senha", "")
         senha_correta = os.getenv("FINANCEIRO_PASSWORD")
 
@@ -779,6 +779,8 @@ def atualizar(tipo):
     )
 
 
+garantir_pasta_logs()
+
+
 if __name__ == "__main__":
-    garantir_pasta_logs()
     app.run(debug=True)
