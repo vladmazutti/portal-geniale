@@ -247,10 +247,17 @@ def buscar_clientes_omie(app_key, app_secret):
     return linhas
 
 
-def limpar_base_omie(ws):
-    for row in ws.iter_rows():
-        for cell in row:
-            cell.value = None
+def limpar_area_base_omie(ws, max_colunas=65):
+    ultima_linha = max(ws.max_row, 1)
+
+    for linha in range(1, ultima_linha + 1):
+        for coluna in range(1, max_colunas + 1):
+            ws.cell(row=linha, column=coluna).value = None
+
+
+def escrever_linha(ws, numero_linha, valores):
+    for indice, valor in enumerate(valores, start=1):
+        ws.cell(row=numero_linha, column=indice).value = valor
 
 
 def salvar_workbook_com_seguranca(wb, arquivo_final):
@@ -289,15 +296,17 @@ def gerar_planilha(tipo):
 
     linhas = buscar_clientes_omie(app_key, app_secret)
 
-    wb = load_workbook(config["modelo"])
+    wb = load_workbook(
+        config["modelo"],
+        keep_links=False
+    )
 
     if "BASE OMIE" not in wb.sheetnames:
         raise Exception(f"Aba 'BASE OMIE' não encontrada em {config['modelo']}")
 
     ws = wb["BASE OMIE"]
-    ws.sheet_state = "veryHidden"
 
-    limpar_base_omie(ws)
+    limpar_area_base_omie(ws, max_colunas=65)
 
     cabecalhos = [""] * 65
     cabecalhos[1] = "CNPJ/CPF"
@@ -309,10 +318,13 @@ def gerar_planilha(tipo):
     cabecalhos[22] = "Nome Titular Conta"
     cabecalhos[64] = "Chave PIX"
 
-    ws.append(cabecalhos)
+    escrever_linha(ws, 1, cabecalhos)
+
+    numero_linha = 2
 
     for linha in linhas:
-        ws.append(linha)
+        escrever_linha(ws, numero_linha, linha)
+        numero_linha += 1
 
     salvar_workbook_com_seguranca(
         wb,
