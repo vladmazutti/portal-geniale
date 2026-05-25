@@ -2,6 +2,7 @@ from flask import Flask, send_file, request, redirect, url_for, render_template,
 import requests
 from requests.exceptions import Timeout, RequestException
 from openpyxl import load_workbook
+from openpyxl.utils import get_column_letter
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -526,7 +527,49 @@ def montar_cabecalhos_base_omie():
     return cabecalhos
 
 
-def atualizar_base_omie(ws, linhas):
+def expandir_intervalos_base_omie(wb, ws, total_linhas):
+    ultima_coluna = get_column_letter(COLUNAS_BASE_OMIE)
+    novo_intervalo = f"A1:{ultima_coluna}{total_linhas}"
+
+    try:
+        ws.auto_filter.ref = novo_intervalo
+    except Exception:
+        pass
+
+    try:
+        for tabela in ws.tables.values():
+            tabela.ref = novo_intervalo
+    except Exception:
+        pass
+
+    try:
+        nomes_definidos = wb.defined_names
+
+        for nome_definido in list(nomes_definidos.values()):
+            destinos = list(nome_definido.destinations)
+
+            novos_destinos = []
+
+            alterou = False
+
+            for aba, referencia in destinos:
+                if aba == ws.title:
+                    novos_destinos.append(
+                        f"'{ws.title}'!${novo_intervalo.replace(':', ':$')}"
+                    )
+                    alterou = True
+
+            if alterou:
+                try:
+                    nome_definido.attr_text = f"'{ws.title}'!${novo_intervalo.replace(':', ':$')}"
+                except Exception:
+                    pass
+
+    except Exception:
+        pass
+
+
+def atualizar_base_omie(wb, ws, linhas):
     total_linhas_novas = len(linhas) + 1
 
     limpar_base_omie_sem_deletar_linhas(
@@ -550,6 +593,12 @@ def atualizar_base_omie(ws, linhas):
         )
 
         numero_linha += 1
+
+    expandir_intervalos_base_omie(
+        wb,
+        ws,
+        total_linhas_novas
+    )
 
 
 def remover_calcchain_do_xlsx(pasta_extraida):
@@ -812,6 +861,7 @@ def gerar_planilha(tipo):
     ws.sheet_state = "veryHidden"
 
     atualizar_base_omie(
+        wb,
         ws,
         linhas
     )
