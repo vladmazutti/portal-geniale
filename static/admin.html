@@ -2,272 +2,96 @@
 <html lang="pt-br">
 
 <head>
-
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>
-        Painel Técnico
-    </title>
-
-    <link
-        rel="stylesheet"
-        href="/static/style.css"
-    >
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Técnico</title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 
 <body>
 
     <main class="admin-container">
 
-        <!-- ===================================================== -->
-        <!-- HEADER -->
-        <!-- ===================================================== -->
-
-        <header class="admin-topbar">
-
+        <header class="admin-topbar compact-panel">
             <div class="admin-top-left">
-
-                <img
-                    src="/static/grupo_geniale.png"
-                    class="grupo-logo"
-                    alt="Grupo Geniale"
-                >
-
-                <h1>
-                    GRUPO GENIALE
-                </h1>
-
+                <img src="/static/grupo_geniale.png" class="grupo-logo" alt="Grupo Geniale">
+                <div>
+                    <h1>PAINEL TÉCNICO</h1>
+                    <span>Monitoramento operacional do gerador de planilhas</span>
+                </div>
             </div>
 
             <div class="admin-top-right">
-
-                <a
-                    href="/"
-                    class="back-home-btn"
-                >
-
-                    ← VOLTAR PARA HOME
-
-                </a>
+                <a href="/" class="back-home-btn">← VOLTAR PARA HOME</a>
 
                 <div class="admin-clock">
-
-                    <div class="admin-clock-icon">
-                        ◷
-                    </div>
-
+                    <div class="admin-clock-icon">◷</div>
                     <div>
-
-                        <strong id="admin-clock-time">
-                            08:01:24
-                        </strong>
-
-                        <span id="admin-clock-date">
-                            13/05/2025
-                        </span>
-
+                        <strong id="admin-clock-time">--:--:--</strong>
+                        <span id="admin-clock-date">--/--/----</span>
                     </div>
-
                 </div>
-
             </div>
-
         </header>
 
-        <!-- ===================================================== -->
-        <!-- NAV -->
-        <!-- ===================================================== -->
-
-        <nav class="admin-nav">
-
-            <button class="nav-item active">
-                GERAL
-            </button>
-
-            <button class="nav-item">
-                HISTÓRICO
-            </button>
-
-            <button class="nav-item">
-                LOGS
-            </button>
-
-            <button class="nav-item">
-                CONFIGURAÇÕES
-            </button>
-
-            <button class="nav-item">
-                SISTEMA
-            </button>
-
-        </nav>
-
-        <!-- ===================================================== -->
-        <!-- METRICS -->
-        <!-- ===================================================== -->
-
-        <section class="metrics-grid">
-
+        <section class="metrics-grid compact-metrics">
             <div class="metric-card green">
-
-                <span>
-                    STATUS GERAL
-                </span>
-
-                <strong>
-                    OK
-                </strong>
-
-                <small>
-                    Sistema operacional
-                </small>
-
+                <span>STATUS GERAL</span>
+                <strong>OK</strong>
+                <small>Sistema operacional</small>
             </div>
 
             <div class="metric-card blue">
-
-                <span>
-                    DURAÇÃO
-                </span>
-
-                <strong id="metric-duration">
-                    42s
-                </strong>
-
-                <small>
-                    Última atualização
-                </small>
-
+                <span>DURAÇÃO</span>
+                <strong id="metric-duration">42s</strong>
+                <small>Última atualização</small>
             </div>
 
             <div class="metric-card orange">
-
-                <span>
-                    REGISTROS
-                </span>
-
-                <strong id="metric-registers">
-                    12.482
-                </strong>
-
-                <small>
-                    Total processados
-                </small>
-
+                <span>REGISTROS</span>
+                <strong id="metric-registers">12.482</strong>
+                <small>Total processados</small>
             </div>
 
             <div class="metric-card purple">
-
-                <span>
-                    PÁGINAS OMIE
-                </span>
-
-                <strong id="metric-pages">
-                    114
-                </strong>
-
-                <small>
-                    Total de páginas
-                </small>
-
+                <span>PÁGINAS OMIE</span>
+                <strong id="metric-pages">114</strong>
+                <small>Total de páginas</small>
             </div>
 
             <div class="metric-card cyan">
-
-                <span>
-                    MODO
-                </span>
-
-                <strong>
-                    Completo
-                </strong>
-
-                <small>
-                    Tipo de execução
-                </small>
-
+                <span>MODO</span>
+                <strong>Completo</strong>
+                <small>Tipo de execução</small>
             </div>
 
             <div class="metric-card cyan">
-
-                <span>
-                    WORKERS
-                </span>
-
-                <strong id="metric-workers">
-                    4
-                </strong>
-
-                <small>
-                    Threads ativas
-                </small>
-
+                <span>WORKERS</span>
+                <strong id="metric-workers">4</strong>
+                <small>Threads ativas</small>
             </div>
 
             <div class="metric-card green">
-
-                <span>
-                    CACHE
-                </span>
-
-                <strong>
-                    HIT
-                </strong>
-
-                <small>
-                    Dados otimizados
-                </small>
-
+                <span>CACHE</span>
+                <strong>HIT</strong>
+                <small>Dados otimizados</small>
             </div>
 
             <div class="metric-card orange">
-
-                <span>
-                    USO OMIE
-                </span>
-
-                <strong>
-                    114 / 5.000
-                </strong>
-
-                <small>
-                    Limite de requisições
-                </small>
-
+                <span>USO OMIE</span>
+                <strong>114 / 5.000</strong>
+                <small>Limite de requisições</small>
             </div>
-
         </section>
 
-        <!-- ===================================================== -->
-        <!-- LOGS -->
-        <!-- ===================================================== -->
-
-        <section class="admin-bottom-grid">
-
-            <!-- LOGS -->
-
+        <section class="admin-bottom-grid compact-bottom-grid">
             <div class="logs-panel">
-
                 <div class="panel-header">
-
-                    <h2>
-                        LOGS DA ÚLTIMA EXECUÇÃO
-                    </h2>
-
-                    <button class="clear-btn">
-                        🗑 LIMPAR LOGS
-                    </button>
-
+                    <h2>LOGS DA ÚLTIMA EXECUÇÃO</h2>
+                    <button class="clear-btn">🗑 LIMPAR LOGS</button>
                 </div>
 
-                <pre id="system-log">
-[08:00:40] Iniciando atualização — GENIALE COMERCIAL
+                <pre id="system-log">[08:00:40] Iniciando atualização — GENIALE COMERCIAL
 [08:00:40] Modo de execução: COMPLETO
 [08:00:40] Workers iniciados: 4
 [08:00:41] Buscando dados da OMIE...
@@ -281,171 +105,70 @@
 [08:01:05] Cache: HIT
 [08:01:05] Duração total: 42s
 
-[08:01:05] Atualização finalizada com sucesso!
-                </pre>
-
+[08:01:05] Atualização finalizada com sucesso!</pre>
             </div>
 
-            <!-- HISTORY -->
-
             <div class="history-panel">
-
                 <div class="panel-header">
-
-                    <h2>
-                        HISTÓRICO RECENTE
-                    </h2>
-
+                    <h2>HISTÓRICO RECENTE</h2>
                 </div>
 
                 <div class="history-list">
-
                     <div class="history-item">
-
                         <div class="history-dot"></div>
-
-                        <span>
-                            13/05/2025 08:01:05
-                        </span>
-
-                        <strong>
-                            Sucesso
-                        </strong>
-
-                        <small>
-                            42s
-                        </small>
-
+                        <span>13/05/2025 08:01:05</span>
+                        <strong>Sucesso</strong>
+                        <small>42s</small>
                     </div>
 
                     <div class="history-item">
-
                         <div class="history-dot"></div>
-
-                        <span>
-                            13/05/2025 07:31:02
-                        </span>
-
-                        <strong>
-                            Sucesso
-                        </strong>
-
-                        <small>
-                            38s
-                        </small>
-
+                        <span>13/05/2025 07:31:02</span>
+                        <strong>Sucesso</strong>
+                        <small>38s</small>
                     </div>
 
                     <div class="history-item">
-
                         <div class="history-dot"></div>
-
-                        <span>
-                            13/05/2025 07:01:03
-                        </span>
-
-                        <strong>
-                            Sucesso
-                        </strong>
-
-                        <small>
-                            41s
-                        </small>
-
+                        <span>13/05/2025 07:01:03</span>
+                        <strong>Sucesso</strong>
+                        <small>41s</small>
                     </div>
 
                     <div class="history-item">
-
                         <div class="history-dot"></div>
-
-                        <span>
-                            13/05/2025 06:31:04
-                        </span>
-
-                        <strong>
-                            Sucesso
-                        </strong>
-
-                        <small>
-                            39s
-                        </small>
-
+                        <span>13/05/2025 06:31:04</span>
+                        <strong>Sucesso</strong>
+                        <small>39s</small>
                     </div>
-
                 </div>
-
-                <a
-                    href="#"
-                    class="history-link"
-                >
-
-                    VER HISTÓRICO COMPLETO →
-
-                </a>
-
             </div>
-
         </section>
 
-        <!-- ===================================================== -->
-        <!-- FOOTER -->
-        <!-- ===================================================== -->
-
-        <footer class="admin-footer">
-
+        <footer class="admin-footer compact-panel">
             <div class="admin-footer-left">
-
-                <div class="shield-icon">
-                    🛡
-                </div>
-
+                <div class="shield-icon">🛡</div>
                 Sistema monitorado em tempo real
-
             </div>
 
             <div class="admin-footer-right">
-
                 Última atualização:
-                <strong>
-                    13/05/2025 08:01:05
-                </strong>
-
+                <strong>13/05/2025 08:01:05</strong>
             </div>
-
         </footer>
 
     </main>
 
     <script>
-
         function atualizarRelogioAdmin() {
-
             const agora = new Date();
 
-            document.getElementById("admin-clock-time")
-                .innerText =
-                    agora.toLocaleTimeString(
-                        "pt-BR",
-                        {
-                            hour12: false
-                        }
-                    );
-
-            document.getElementById("admin-clock-date")
-                .innerText =
-                    agora.toLocaleDateString(
-                        "pt-BR"
-                    );
-
+            document.getElementById("admin-clock-time").innerText = agora.toLocaleTimeString("pt-BR", { hour12: false });
+            document.getElementById("admin-clock-date").innerText = agora.toLocaleDateString("pt-BR");
         }
 
         atualizarRelogioAdmin();
-
-        setInterval(
-            atualizarRelogioAdmin,
-            1000
-        );
-
+        setInterval(atualizarRelogioAdmin, 1000);
     </script>
 
 </body>

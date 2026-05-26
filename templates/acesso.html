@@ -3,18 +3,9 @@
 
 <head>
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acesso Financeiro</title>
-
-    <link
-        rel="stylesheet"
-        href="{{ url_for('static', filename='style.css') }}"
-    >
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
 <body>
@@ -22,71 +13,39 @@
     <main class="login-page">
 
         <section class="login-card financeiro">
-
             <div class="login-glow"></div>
 
+            <div class="login-brand-stack">
+                <img src="{{ url_for('static', filename='logo.png') }}" class="login-geniale-logo" alt="Geniale">
+                <div class="login-plus">+</div>
+                <img src="{{ url_for('static', filename='logo_paniz.png') }}" class="login-paniz-logo" alt="Paniz">
+            </div>
+
             <div class="login-header">
-
-                <div class="login-logo">
-                    🔒
-                </div>
-
+                <div class="login-lock">🔒</div>
                 <div>
-
-                    <h1>
-                        ACESSO FINANCEIRO
-                    </h1>
-
-                    <p>
-                        Área restrita para download da consolidadora financeira
-                    </p>
-
+                    <h1>ACESSO FINANCEIRO</h1>
+                    <p>Área restrita para download da consolidadora financeira</p>
                 </div>
-
             </div>
 
             {% if erro %}
-
             <div class="login-error">
                 {{ erro }}
             </div>
-
             {% endif %}
 
-            <form
-                method="POST"
-                class="login-form"
-            >
+            <form method="POST" class="login-form">
+                <label for="senha">Senha de acesso</label>
 
-                <label for="senha">
-                    Senha de acesso
-                </label>
+                <input type="password" id="senha" name="senha" placeholder="Digite a senha" required autofocus>
 
-                <input
-                    type="password"
-                    id="senha"
-                    name="senha"
-                    placeholder="Digite a senha"
-                    required
-                    autofocus
-                >
-
-                <button
-                    type="submit"
-                    class="login-button"
-                >
+                <button type="submit" class="login-button">
                     🔒 ACESSAR E BAIXAR
                 </button>
-
             </form>
 
-            <a
-                href="/"
-                class="login-back"
-            >
-                ← Voltar para o portal
-            </a>
-
+            <a href="/" class="login-back">← Voltar para o portal</a>
         </section>
 
     </main>

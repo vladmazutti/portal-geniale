@@ -2,102 +2,46 @@
 <html lang="pt-br">
 
 <head>
-
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>
-        Central de Relatórios
-    </title>
-
-    <link
-        rel="stylesheet"
-        href="{{ url_for('static', filename='style.css') }}"
-    >
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Central de Relatórios</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
 <body>
 
     <main class="home-container">
 
-        <!-- ===================================================== -->
-        <!-- HEADER -->
-        <!-- ===================================================== -->
-
-        <header class="topbar">
-
+        <header class="topbar compact-panel">
             <div class="topbar-left">
-
-                <img
-                    src="{{ url_for('static', filename='logo.png') }}"
-                    class="top-logo"
-                    alt="Geniale"
-                >
-
+                <img src="{{ url_for('static', filename='logo.png') }}" class="top-logo" alt="Geniale">
             </div>
 
             <div class="topbar-right">
-
                 <div class="clock-box">
-
-                    <div class="clock-icon">
-                        ◷
-                    </div>
-
+                    <div class="clock-icon">◷</div>
                     <div>
-
-                        <strong id="clock-time">
-                            08:01:24
-                        </strong>
-
-                        <span id="clock-date">
-                            13/05/2025
-                        </span>
-
+                        <strong id="clock-time">--:--:--</strong>
+                        <span id="clock-date">--/--/----</span>
                     </div>
-
                 </div>
 
                 <div class="online-status">
-
                     <div class="online-dot"></div>
-
                     ONLINE
-
                 </div>
-
             </div>
-
         </header>
 
-        <!-- ===================================================== -->
-        <!-- TITLE -->
-        <!-- ===================================================== -->
-
-        <section class="hero-title">
-
+        <section class="hero-title compact-title">
             <div class="hero-line"></div>
-
-            <h1>
-                CENTRAL DE RELATÓRIOS
-            </h1>
-
+            <h1>CENTRAL DE RELATÓRIOS</h1>
             <div class="hero-line"></div>
-
         </section>
 
         <p class="hero-subtitle">
             Selecione o relatório que deseja visualizar ou baixar
         </p>
-
-        <!-- ===================================================== -->
-        <!-- CARDS -->
-        <!-- ===================================================== -->
 
         <section class="reports-grid">
 
@@ -105,64 +49,30 @@
 
             <article class="report-card {{ relatorio.classe }}">
 
-                <!-- LEFT -->
-
                 <div class="report-left">
-
                     {% if relatorio.tipo == "financeiro" %}
 
                     <div class="financeiro-stack">
-
-                        <img
-                            src="{{ url_for('static', filename='logo.png') }}"
-                            alt="Geniale"
-                        >
-
-                        <div class="financeiro-plus">
-                            +
-                        </div>
-
-                        <img
-                            src="{{ url_for('static', filename='logo_paniz.png') }}"
-                            alt="Paniz"
-                        >
-
+                        <img src="{{ url_for('static', filename='logo.png') }}" alt="Geniale">
+                        <div class="financeiro-plus">+</div>
+                        <img src="{{ url_for('static', filename='logo_paniz.png') }}" alt="Paniz">
                     </div>
 
                     {% else %}
 
-                    <img
-                        src="{{ url_for('static', filename=relatorio.logo) }}"
-                        class="report-logo"
-                        alt="{{ relatorio.nome }}"
-                    >
+                    <img src="{{ url_for('static', filename=relatorio.logo) }}" class="report-logo" alt="{{ relatorio.nome }}">
 
                     {% endif %}
-
                 </div>
-
-                <!-- CENTER -->
 
                 <div class="report-center">
-
-                    <h2>
-                        {{ relatorio.nome }}
-                    </h2>
-
-                    <span>
-                        {{ relatorio.titulo }}
-                    </span>
-
+                    <h2>{{ relatorio.nome }}</h2>
+                    <span>{{ relatorio.titulo }}</span>
                 </div>
 
-                <!-- STATUS -->
-
                 <div class="report-status">
-
-                    <div class="status-pill ok">
-
+                    <div class="status-pill {{ relatorio.status.cor }}" id="status-pill-{{ relatorio.tipo }}">
                         <div class="status-dot"></div>
-
                         <strong id="status-main-{{ relatorio.tipo }}">
                             {% if relatorio.status.cor == "atualizando" %}
                                 ATUALIZANDO
@@ -172,58 +82,26 @@
                                 ATUALIZADO
                             {% endif %}
                         </strong>
-
                     </div>
 
-                    <small>
-                        Última atualização
-                    </small>
-
-                    <span id="status-date-{{ relatorio.tipo }}">
-                        {{ relatorio.status.ultima }}
-                    </span>
-
+                    <small>Última atualização</small>
+                    <span id="status-date-{{ relatorio.tipo }}">{{ relatorio.status.ultima }}</span>
                 </div>
 
-                <!-- ACTIONS -->
-
                 <div class="report-actions">
-
-                    <button
-                        type="button"
-                        class="action-btn update-btn"
-                        id="update-btn-{{ relatorio.tipo }}"
-                        onclick="iniciarAtualizacao('{{ relatorio.tipo }}')"
-                    >
-
+                    <button type="button" class="action-btn update-btn" id="update-btn-{{ relatorio.tipo }}" onclick="iniciarAtualizacao('{{ relatorio.tipo }}')">
                         ↻ Atualizar
-
                     </button>
 
                     {% if relatorio.restrito %}
-
-                    <a
-                        href="/acessar/{{ relatorio.tipo }}"
-                        class="action-btn download-btn"
-                    >
-
+                    <a href="/acessar/{{ relatorio.tipo }}" class="action-btn download-btn">
                         🔒 Acessar
-
                     </a>
-
                     {% else %}
-
-                    <a
-                        href="/baixar/{{ relatorio.tipo }}"
-                        class="action-btn download-btn"
-                    >
-
+                    <a href="/baixar/{{ relatorio.tipo }}" class="action-btn download-btn">
                         ↓ Baixar Excel
-
                     </a>
-
                     {% endif %}
-
                 </div>
 
             </article>
@@ -232,151 +110,118 @@
 
         </section>
 
-        <!-- ===================================================== -->
-        <!-- AUTO UPDATE -->
-        <!-- ===================================================== -->
-
-        <section class="auto-update-box">
-
-            <div class="auto-left">
-
-                <div class="auto-icon">
-                    ↻
-                </div>
-
+        <section class="schedule-box">
+            <div class="schedule-left">
+                <div class="schedule-icon">↻</div>
                 <div>
-
-                    <strong>
-                        ATUALIZAÇÃO AUTOMÁTICA
-                    </strong>
-
-                    <span>
-                        A cada 30 minutos
-                    </span>
-
+                    <strong>ATUALIZAÇÃO AUTOMÁTICA</strong>
+                    <span>Geniale e Paniz: 08:00 diariamente · Financeiro: 08:00 e 12:00 diariamente</span>
                 </div>
-
             </div>
 
-            <div class="auto-right">
-
-                <span>
-                    Próxima atualização em:
-                </span>
-
-                <strong id="countdown">
-                    00:28:36
-                </strong>
-
+            <div class="schedule-right">
+                <span>Execução sob demanda disponível pelo botão</span>
             </div>
-
         </section>
 
-        <!-- ===================================================== -->
-        <!-- FOOTER -->
-        <!-- ===================================================== -->
-
-        <footer class="footer-home">
-
+        <footer class="footer-home compact-panel">
             <div class="footer-security">
-
-                <div class="shield-icon">
-                    🛡
-                </div>
-
-                <span>
-                    Sistema seguro e monitorado
-                </span>
-
+                <div class="shield-icon">🛡</div>
+                <span>Sistema seguro e monitorado</span>
             </div>
 
-            <a
-                href="/static/admin.html"
-                class="tech-button"
-            >
+            <a href="/static/admin.html" class="tech-button">◫ PAINEL TÉCNICO</a>
 
-                ◫ PAINEL TÉCNICO
-
-            </a>
-
-            <div class="footer-dev">
-
-                Desenvolvido por Geniale Soluções
-
-            </div>
-
+            <div class="footer-dev">Desenvolvido por Geniale Soluções</div>
         </footer>
 
     </main>
 
-    <!-- ===================================================== -->
-    <!-- SCRIPT -->
-    <!-- ===================================================== -->
-
     <script>
-
         async function iniciarAtualizacao(tipo) {
-
-            const botao =
-                document.getElementById(`update-btn-${tipo}`);
+            const botao = document.getElementById(`update-btn-${tipo}`);
+            const status = document.getElementById(`status-main-${tipo}`);
+            const pill = document.getElementById(`status-pill-${tipo}`);
 
             botao.disabled = true;
             botao.innerHTML = "⏳ Atualizando...";
 
-            try {
-
-                await fetch(`/api/atualizar/${tipo}`);
-
-                setTimeout(() => {
-
-                    botao.disabled = false;
-                    botao.innerHTML = "↻ Atualizar";
-
-                }, 5000);
-
-            } catch (erro) {
-
-                console.log(erro);
-
-                botao.disabled = false;
-                botao.innerHTML = "↻ Atualizar";
-
+            if (status) {
+                status.innerText = "ATUALIZANDO";
             }
 
+            if (pill) {
+                pill.classList.remove("ok", "erro");
+                pill.classList.add("atualizando");
+            }
+
+            try {
+                await fetch(`/api/atualizar/${tipo}`);
+                setTimeout(atualizarStatus, 2500);
+            } catch (erro) {
+                console.log(erro);
+                botao.disabled = false;
+                botao.innerHTML = "↻ Atualizar";
+            }
+        }
+
+        async function atualizarStatus() {
+            try {
+                const resposta = await fetch("/api/status");
+                const dados = await resposta.json();
+
+                Object.keys(dados).forEach((tipo) => {
+                    const item = dados[tipo];
+                    const status = document.getElementById(`status-main-${tipo}`);
+                    const data = document.getElementById(`status-date-${tipo}`);
+                    const pill = document.getElementById(`status-pill-${tipo}`);
+                    const botao = document.getElementById(`update-btn-${tipo}`);
+
+                    if (!item || !status) {
+                        return;
+                    }
+
+                    const cor = item.cor || "ok";
+
+                    if (cor === "atualizando") {
+                        status.innerText = "ATUALIZANDO";
+                    } else if (cor === "erro") {
+                        status.innerText = "ERRO";
+                    } else {
+                        status.innerText = "ATUALIZADO";
+                    }
+
+                    if (data && item.ultima) {
+                        data.innerText = item.ultima;
+                    }
+
+                    if (pill) {
+                        pill.classList.remove("ok", "erro", "atualizando");
+                        pill.classList.add(cor);
+                    }
+
+                    if (botao && cor !== "atualizando") {
+                        botao.disabled = false;
+                        botao.innerHTML = "↻ Atualizar";
+                    }
+                });
+            } catch (erro) {
+                console.log(erro);
+            }
         }
 
         function atualizarRelogio() {
-
             const agora = new Date();
 
-            const hora =
-                agora.toLocaleTimeString(
-                    "pt-BR",
-                    {
-                        hour12: false
-                    }
-                );
-
-            const data =
-                agora.toLocaleDateString(
-                    "pt-BR"
-                );
-
-            document.getElementById("clock-time")
-                .innerText = hora;
-
-            document.getElementById("clock-date")
-                .innerText = data;
-
+            document.getElementById("clock-time").innerText = agora.toLocaleTimeString("pt-BR", { hour12: false });
+            document.getElementById("clock-date").innerText = agora.toLocaleDateString("pt-BR");
         }
 
         atualizarRelogio();
+        atualizarStatus();
 
-        setInterval(
-            atualizarRelogio,
-            1000
-        );
-
+        setInterval(atualizarRelogio, 1000);
+        setInterval(atualizarStatus, 15000);
     </script>
 
 </body>
