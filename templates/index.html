@@ -9,7 +9,7 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Portal Corporativo | Geniale</title>
+    <title>Planilhas de Pagamento</title>
 
     <link
         rel="stylesheet"
@@ -19,256 +19,386 @@
 
 <body>
 
-    <div class="page-bg">
-        <div class="orb orb-orange"></div>
-        <div class="orb orb-purple"></div>
-        <div class="orb orb-mixed"></div>
-    </div>
+    <div class="app-background"></div>
 
-    <header class="topbar">
+    <main class="page">
 
-        <div class="brand-area">
+        <header class="header">
 
-            <div class="brand-icon">
-                <span></span>
-            </div>
+            <div class="header-brand">
 
-            <div>
-                <div class="brand-kicker">
-                    SISTEMA CORPORATIVO
+                <div class="header-logo-wrap">
+                    <img
+                        src="{{ url_for('static', filename='logo.png') }}"
+                        alt="Geniale"
+                        class="header-logo"
+                    >
                 </div>
 
-                <h1>
-                    Portal de Relatórios
-                </h1>
-            </div>
+                <div class="header-divider"></div>
 
-        </div>
+                <div class="header-title-area">
 
-        <div class="topbar-panel">
+                    <h1>
+                        PLANILHAS DE PAGAMENTO
+                    </h1>
 
-            <div class="topbar-panel-label">
-                Horário de Brasília
-            </div>
+                    <p>
+                        Sistema de Geração e Download
+                    </p>
 
-            <div
-                class="topbar-panel-time"
-                id="clock-time"
-            >
-                {{ agora }}
-            </div>
-
-        </div>
-
-    </header>
-
-    <main class="shell">
-
-        <section class="hero">
-
-            <div class="hero-left">
-
-                <div class="hero-badge">
-                    OMIE • RAILWAY • EXCEL
                 </div>
+
+            </div>
+
+            <div class="system-update-card">
+
+                <div class="system-update-icon">
+                    ◷
+                </div>
+
+                <div>
+
+                    <span>
+                        Última atualização do sistema
+                    </span>
+
+                    <strong id="clock-time">
+                        {{ agora }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </header>
+
+        <section class="dashboard">
+
+            <section class="dashboard-title">
+
+                <div class="title-line"></div>
 
                 <h2>
-                    Central inteligente de planilhas
+                    GERAÇÃO DE PLANILHAS
                 </h2>
 
+                <div class="title-line"></div>
+
                 <p>
-                    Atualizações em segundo plano, geração segura dos arquivos,
-                    consulta completa da base OMIE e download imediato das versões disponíveis.
+                    Selecione uma planilha abaixo para atualizar ou realizar download
                 </p>
 
-            </div>
+            </section>
 
-            <div class="hero-right">
+            <section class="reports-list">
 
-                <div class="hero-stat">
-                    <span>3</span>
-                    <small>Relatórios ativos</small>
-                </div>
+                {% for relatorio in relatorios %}
 
-                <div class="hero-stat">
-                    <span>4</span>
-                    <small>Workers OMIE</small>
-                </div>
+                <article
+                    class="report-card {{ relatorio.classe }}"
+                    id="card-{{ relatorio.tipo }}"
+                    data-tipo="{{ relatorio.tipo }}"
+                >
 
-                <div class="hero-stat">
-                    <span>20s</span>
-                    <small>Status em tempo real</small>
-                </div>
+                    <div class="report-top">
 
-            </div>
+                        <div class="report-identity">
 
-        </section>
+                            <div class="report-logo-box">
 
-        <section class="reports-stack">
+                                {% if relatorio.logo %}
 
-            {% for relatorio in relatorios %}
+                                <img
+                                    src="{{ url_for('static', filename=relatorio.logo) }}"
+                                    alt="{{ relatorio.nome }}"
+                                >
 
-            <article
-                class="report-panel {{ relatorio.classe }}"
-                id="card-{{ relatorio.tipo }}"
-                data-tipo="{{ relatorio.tipo }}"
-            >
+                                {% else %}
 
-                <div class="panel-light"></div>
+                                <div class="financeiro-shield">
+                                    🔒
+                                </div>
 
-                <div class="panel-main">
+                                {% endif %}
 
-                    <div class="panel-identity">
+                            </div>
 
-                        <div class="logo-frame">
+                            <div class="report-text">
 
-                            {% if relatorio.logo %}
+                                <h3>
+                                    {{ relatorio.nome }}
+                                </h3>
 
-                            <img
-                                src="{{ url_for('static', filename=relatorio.logo) }}"
-                                alt="{{ relatorio.nome }}"
+                                <strong>
+                                    {{ relatorio.titulo }}
+                                </strong>
+
+                                <p>
+                                    {{ relatorio.descricao }}
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                        <div class="report-column status-column">
+
+                            <span class="column-label">
+                                STATUS
+                            </span>
+
+                            <div
+                                class="status-badge {{ relatorio.status.cor }}"
+                                id="status-badge-{{ relatorio.tipo }}"
                             >
 
-                            {% else %}
+                                <span class="status-icon">
+                                    ✓
+                                </span>
 
-                            <div class="financeiro-mark">
-                                $
+                                <strong id="status-text-{{ relatorio.tipo }}">
+                                    {{ relatorio.status.texto }}
+                                </strong>
+
                             </div>
 
-                            {% endif %}
-
                         </div>
 
-                        <div>
+                        <div class="report-column update-column">
 
-                            <div class="panel-kicker">
-                                {{ relatorio.titulo }}
+                            <span class="column-label">
+                                ÚLTIMA ATUALIZAÇÃO
+                            </span>
+
+                            <div class="date-row">
+
+                                <span class="date-icon">
+                                    ▣
+                                </span>
+
+                                <strong id="update-date-{{ relatorio.tipo }}">
+                                    {{ relatorio.status.ultima }}
+                                </strong>
+
                             </div>
 
-                            <h3>
-                                {{ relatorio.nome }}
-                            </h3>
-
-                            <p>
-                                {{ relatorio.descricao }}
-                            </p>
-
                         </div>
 
-                    </div>
+                        <div class="report-column actions-column">
 
-                    <div class="panel-status-area">
-
-                        <div
-                            class="status-pill {{ relatorio.status.cor }}"
-                            id="status-pill-{{ relatorio.tipo }}"
-                        >
-
-                            <span class="status-pulse"></span>
-
-                            <strong id="status-text-{{ relatorio.tipo }}">
-                                {{ relatorio.status.texto }}
-                            </strong>
-
-                        </div>
-
-                        <div class="last-update">
-
-                            <span>
-                                Última atualização
+                            <span class="column-label">
+                                AÇÕES
                             </span>
 
-                            <strong id="update-date-{{ relatorio.tipo }}">
-                                {{ relatorio.status.ultima }}
-                            </strong>
+                            <div class="actions-row">
+
+                                <button
+                                    type="button"
+                                    class="action-btn update-btn"
+                                    id="update-btn-{{ relatorio.tipo }}"
+                                    onclick="iniciarAtualizacao('{{ relatorio.tipo }}')"
+                                    {% if relatorio.status.cor == 'atualizando' %}disabled{% endif %}
+                                >
+                                    <span>↻</span>
+
+                                    {% if relatorio.status.cor == 'atualizando' %}
+                                        ATUALIZANDO...
+                                    {% else %}
+                                        ATUALIZAR
+                                    {% endif %}
+                                </button>
+
+                                {% if relatorio.restrito %}
+
+                                <a
+                                    href="/acessar/{{ relatorio.tipo }}"
+                                    class="action-btn download-btn"
+                                    id="download-link-{{ relatorio.tipo }}"
+                                >
+                                    <span>🔒</span>
+                                    ACESSAR
+                                </a>
+
+                                {% else %}
+
+                                <a
+                                    href="/baixar/{{ relatorio.tipo }}"
+                                    class="action-btn download-btn"
+                                    id="download-link-{{ relatorio.tipo }}"
+                                >
+                                    <span>↓</span>
+                                    BAIXAR
+                                </a>
+
+                                {% endif %}
+
+                            </div>
 
                         </div>
 
                     </div>
 
-                </div>
+                    <div class="report-metrics">
 
-                <div class="panel-metrics">
+                        <div class="metrics-header">
 
-                    <div class="metric-card">
-                        <div class="metric-icon">
-                            ⏱
-                        </div>
-
-                        <div>
                             <span>
-                                Duração
+                                RESULTADO DA ÚLTIMA ATUALIZAÇÃO
                             </span>
 
-                            <strong id="metric-duration-{{ relatorio.tipo }}">
-                                —
-                            </strong>
-                        </div>
-                    </div>
+                            <button
+                                type="button"
+                                class="history-link"
+                                onclick="toggleLog('{{ relatorio.tipo }}')"
+                            >
+                                VER HISTÓRICO COMPLETO ›
+                            </button>
 
-                    <div class="metric-card">
-                        <div class="metric-icon">
-                            📄
-                        </div>
-
-                        <div>
-                            <span>
-                                Registros
-                            </span>
-
-                            <strong id="metric-records-{{ relatorio.tipo }}">
-                                —
-                            </strong>
-                        </div>
-                    </div>
-
-                    <div class="metric-card">
-                        <div class="metric-icon">
-                            📚
                         </div>
 
-                        <div>
-                            <span>
-                                Páginas
-                            </span>
+                        <div class="metrics-grid">
 
-                            <strong id="metric-pages-{{ relatorio.tipo }}">
-                                —
-                            </strong>
-                        </div>
-                    </div>
+                            <div class="metric-item">
 
-                    <div class="metric-card">
-                        <div class="metric-icon">
-                            ⚡
-                        </div>
+                                <div class="metric-icon success">
+                                    ✓
+                                </div>
 
-                        <div>
-                            <span>
-                                Processamento
-                            </span>
+                                <div>
 
-                            <strong id="metric-mode-{{ relatorio.tipo }}">
-                                —
-                            </strong>
-                        </div>
-                    </div>
+                                    <strong id="metric-status-{{ relatorio.tipo }}">
+                                        OK
+                                    </strong>
 
-                </div>
+                                    <span>
+                                        Status
+                                    </span>
 
-                <div class="panel-footer">
+                                </div>
 
-                    <div class="execution-summary">
+                            </div>
 
-                        <div class="summary-label">
-                            Última execução
-                        </div>
+                            <div class="metric-item">
 
-                        <div
-                            class="summary-text"
-                            id="summary-text-{{ relatorio.tipo }}"
-                        >
-                            Aguardando histórico de processamento.
+                                <div class="metric-icon">
+                                    ◷
+                                </div>
+
+                                <div>
+
+                                    <strong id="metric-duration-{{ relatorio.tipo }}">
+                                        —
+                                    </strong>
+
+                                    <span>
+                                        Duração
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                            <div class="metric-item">
+
+                                <div class="metric-icon">
+                                    ▤
+                                </div>
+
+                                <div>
+
+                                    <strong id="metric-records-{{ relatorio.tipo }}">
+                                        —
+                                    </strong>
+
+                                    <span>
+                                        Registros OMIE
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                            <div class="metric-item">
+
+                                <div class="metric-icon">
+                                    ▤
+                                </div>
+
+                                <div>
+
+                                    <strong id="metric-pages-{{ relatorio.tipo }}">
+                                        —
+                                    </strong>
+
+                                    <span>
+                                        Páginas OMIE
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                            <div class="metric-item">
+
+                                <div class="metric-icon">
+                                    ⚡
+                                </div>
+
+                                <div>
+
+                                    <strong id="metric-mode-{{ relatorio.tipo }}">
+                                        —
+                                    </strong>
+
+                                    <span>
+                                        Modo de busca
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                            <div class="metric-item">
+
+                                <div class="metric-icon">
+                                    ♚
+                                </div>
+
+                                <div>
+
+                                    <strong id="metric-workers-{{ relatorio.tipo }}">
+                                        —
+                                    </strong>
+
+                                    <span>
+                                        Workers
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                            <div class="metric-item">
+
+                                <div class="metric-icon">
+                                    ◎
+                                </div>
+
+                                <div>
+
+                                    <strong id="metric-cache-{{ relatorio.tipo }}">
+                                        —
+                                    </strong>
+
+                                    <span>
+                                        Cache
+                                    </span>
+
+                                </div>
+
+                            </div>
+
                         </div>
 
                         <pre
@@ -278,78 +408,69 @@
 
                     </div>
 
-                    <div class="panel-actions">
+                </article>
 
-                        <button
-                            class="action-button secondary"
-                            id="update-btn-{{ relatorio.tipo }}"
-                            onclick="iniciarAtualizacao('{{ relatorio.tipo }}')"
-                            {% if relatorio.status.cor == 'atualizando' %}disabled{% endif %}
-                        >
-                            {% if relatorio.status.cor == 'atualizando' %}
-                                Atualizando...
-                            {% else %}
-                                Atualizar
-                            {% endif %}
-                        </button>
+                {% endfor %}
 
-                        {% if relatorio.restrito %}
+            </section>
 
-                        <a
-                            href="/acessar/{{ relatorio.tipo }}"
-                            class="action-button primary"
-                            id="download-link-{{ relatorio.tipo }}"
-                        >
-                            Acessar
-                        </a>
+            <section class="schedule-bar">
 
-                        {% else %}
+                <div class="schedule-title">
 
-                        <a
-                            href="/baixar/{{ relatorio.tipo }}"
-                            class="action-button primary"
-                            id="download-link-{{ relatorio.tipo }}"
-                        >
-                            Baixar
-                        </a>
+                    <span>
+                        ⚙
+                    </span>
 
-                        {% endif %}
-
-                    </div>
+                    <strong>
+                        ATUALIZAÇÕES AUTOMÁTICAS CONFIGURADAS:
+                    </strong>
 
                 </div>
 
-            </article>
+                <div class="schedule-item geniale-schedule">
 
-            {% endfor %}
+                    <span>
+                        ◷
+                    </span>
 
-        </section>
+                    <strong>
+                        GENIALE:
+                    </strong>
 
-        <section class="features-row">
+                    08:00h diariamente
 
-            <div class="feature-tile">
-                <span>🛡</span>
-                <div>
-                    <strong>Segurança</strong>
-                    <p>Acesso controlado e arquivos protegidos.</p>
                 </div>
-            </div>
 
-            <div class="feature-tile">
-                <span>⚙</span>
-                <div>
-                    <strong>Automação</strong>
-                    <p>Atualizações programadas e manuais.</p>
-                </div>
-            </div>
+                <div class="schedule-item paniz-schedule">
 
-            <div class="feature-tile">
-                <span>⬇</span>
-                <div>
-                    <strong>Download rápido</strong>
-                    <p>Arquivos prontos, sem espera na geração.</p>
+                    <span>
+                        ◷
+                    </span>
+
+                    <strong>
+                        PANIZ:
+                    </strong>
+
+                    08:00h diariamente
+
                 </div>
-            </div>
+
+                <div class="schedule-item financeiro-schedule">
+
+                    <span>
+                        ◷
+                    </span>
+
+                    <strong>
+                        FINANCEIRO:
+                    </strong>
+
+                    08:00h e 12:00h
+
+                </div>
+
+            </section>
 
         </section>
 
@@ -370,6 +491,7 @@
                 if (linha.startsWith(chave + ":")) {
                     return linha.replace(chave + ":", "").trim();
                 }
+
             }
 
             return "";
@@ -381,7 +503,7 @@
                 return "—";
             }
 
-            const numero = Number(valor.replace(/\D/g, ""));
+            const numero = Number(String(valor).replace(/\D/g, ""));
 
             if (!numero) {
                 return valor;
@@ -392,49 +514,61 @@
 
         function atualizarMetricas(tipo, log) {
 
+            const status = extrairValorLog(log, "STATUS");
             const duracao = extrairValorLog(log, "DURAÇÃO");
             const registros = extrairValorLog(log, "REGISTROS OMIE");
             const paginas = extrairValorLog(log, "PÁGINAS OMIE");
             const modo = extrairValorLog(log, "MODO OMIE");
             const workers = extrairValorLog(log, "WORKERS OMIE");
             const cache = extrairValorLog(log, "CACHE");
-            const status = extrairValorLog(log, "STATUS");
-            const dataHora = extrairValorLog(log, "DATA/HORA");
 
-            const durationEl = document.getElementById(`metric-duration-${tipo}`);
-            const recordsEl = document.getElementById(`metric-records-${tipo}`);
-            const pagesEl = document.getElementById(`metric-pages-${tipo}`);
-            const modeEl = document.getElementById(`metric-mode-${tipo}`);
-            const summaryEl = document.getElementById(`summary-text-${tipo}`);
+            const metricStatus = document.getElementById(`metric-status-${tipo}`);
+            const metricDuration = document.getElementById(`metric-duration-${tipo}`);
+            const metricRecords = document.getElementById(`metric-records-${tipo}`);
+            const metricPages = document.getElementById(`metric-pages-${tipo}`);
+            const metricMode = document.getElementById(`metric-mode-${tipo}`);
+            const metricWorkers = document.getElementById(`metric-workers-${tipo}`);
+            const metricCache = document.getElementById(`metric-cache-${tipo}`);
 
-            if (durationEl) {
-                durationEl.innerText = duracao || "—";
+            if (metricStatus) {
+                metricStatus.innerText = status || "—";
             }
 
-            if (recordsEl) {
-                recordsEl.innerText = formatarNumero(registros);
+            if (metricDuration) {
+                metricDuration.innerText = duracao || "—";
             }
 
-            if (pagesEl) {
-                pagesEl.innerText = paginas || "—";
+            if (metricRecords) {
+                metricRecords.innerText = formatarNumero(registros);
             }
 
-            if (modeEl) {
-                if (modo && workers) {
-                    modeEl.innerText = `${modo} • ${workers} workers`;
-                } else {
-                    modeEl.innerText = modo || "—";
-                }
+            if (metricPages) {
+                metricPages.innerText = paginas || "—";
             }
 
-            if (summaryEl) {
-
-                if (status || dataHora || cache) {
-                    summaryEl.innerText = `${status || "OK"} em ${dataHora || "data não informada"} • ${cache || "processamento concluído"}`;
-                } else {
-                    summaryEl.innerText = "Aguardando histórico de processamento.";
-                }
+            if (metricMode) {
+                metricMode.innerText = modo || "—";
             }
+
+            if (metricWorkers) {
+                metricWorkers.innerText = workers || "—";
+            }
+
+            if (metricCache) {
+                metricCache.innerText = cache || "—";
+            }
+
+        }
+
+        function toggleLog(tipo) {
+
+            const logBox = document.getElementById(`log-box-${tipo}`);
+
+            if (!logBox) {
+                return;
+            }
+
+            logBox.classList.toggle("visible");
         }
 
         async function iniciarAtualizacao(tipo) {
@@ -442,15 +576,19 @@
             const card = document.getElementById(`card-${tipo}`);
             const botao = document.getElementById(`update-btn-${tipo}`);
             const statusTexto = document.getElementById(`status-text-${tipo}`);
-            const statusPill = document.getElementById(`status-pill-${tipo}`);
+            const statusBadge = document.getElementById(`status-badge-${tipo}`);
+
+            if (!card || !botao || !statusTexto || !statusBadge) {
+                return;
+            }
 
             botao.disabled = true;
-            botao.innerText = "Atualizando...";
+            botao.innerHTML = "<span>⏳</span> ATUALIZANDO...";
 
-            card.classList.add("updating");
+            card.classList.add("card-updating");
 
             statusTexto.innerText = "Atualizando...";
-            statusPill.className = "status-pill atualizando";
+            statusBadge.className = "status-badge atualizando";
 
             try {
 
@@ -464,13 +602,14 @@
             } catch (erro) {
 
                 statusTexto.innerText = "Erro ao iniciar atualização";
-                statusPill.className = "status-pill erro";
+                statusBadge.className = "status-badge erro";
 
                 botao.disabled = false;
-                botao.innerText = "Atualizar";
+                botao.innerHTML = "<span>↻</span> ATUALIZAR";
 
-                card.classList.remove("updating");
+                card.classList.remove("card-updating");
             }
+
         }
 
         async function atualizarStatus() {
@@ -487,18 +626,19 @@
 
                     const card = document.getElementById(`card-${tipo}`);
                     const statusTexto = document.getElementById(`status-text-${tipo}`);
-                    const statusPill = document.getElementById(`status-pill-${tipo}`);
+                    const statusBadge = document.getElementById(`status-badge-${tipo}`);
                     const updateDate = document.getElementById(`update-date-${tipo}`);
                     const updateBtn = document.getElementById(`update-btn-${tipo}`);
                     const logBox = document.getElementById(`log-box-${tipo}`);
 
-                    if (!card || !statusTexto || !statusPill || !updateDate || !updateBtn) {
+                    if (!card || !statusTexto || !statusBadge || !updateDate || !updateBtn) {
                         return;
                     }
 
                     statusTexto.innerText = status.texto;
                     updateDate.innerText = status.ultima;
-                    statusPill.className = `status-pill ${status.cor}`;
+
+                    statusBadge.className = `status-badge ${status.cor}`;
 
                     if (logBox) {
                         logBox.innerText = status.ultimo_log;
@@ -508,17 +648,17 @@
 
                     if (status.cor === "atualizando") {
 
-                        card.classList.add("updating");
+                        card.classList.add("card-updating");
 
                         updateBtn.disabled = true;
-                        updateBtn.innerText = "Atualizando...";
+                        updateBtn.innerHTML = "<span>⏳</span> ATUALIZANDO...";
 
                     } else {
 
-                        card.classList.remove("updating");
+                        card.classList.remove("card-updating");
 
                         updateBtn.disabled = false;
-                        updateBtn.innerText = "Atualizar";
+                        updateBtn.innerHTML = "<span>↻</span> ATUALIZAR";
 
                     }
 
@@ -527,6 +667,7 @@
             } catch (erro) {
                 console.log("Erro ao atualizar status:", erro);
             }
+
         }
 
         function atualizarRelogioLocal() {
