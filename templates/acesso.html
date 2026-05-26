@@ -2,7 +2,6 @@
 <html lang="pt-br">
 
 <head>
-
     <meta charset="UTF-8">
 
     <meta
@@ -10,83 +9,87 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Acesso Restrito</title>
+    <title>Acesso Financeiro</title>
 
     <link
         rel="stylesheet"
         href="{{ url_for('static', filename='style.css') }}"
     >
-
 </head>
 
-<body class="center-page">
+<body>
 
-    <div class="auth-container">
+    <main class="login-page">
 
-        <div class="auth-glow"></div>
+        <section class="login-card financeiro">
 
-        <div class="auth-card">
+            <div class="login-glow"></div>
 
-            <div class="auth-header">
+            <div class="login-header">
 
-                <div class="auth-icon">
+                <div class="login-logo">
                     🔒
                 </div>
 
                 <div>
 
-                    <div class="auth-title">
-                        ACESSO RESTRITO
-                    </div>
+                    <h1>
+                        ACESSO FINANCEIRO
+                    </h1>
 
-                    <div class="auth-subtitle">
-                        Consolidadora Financeira
-                    </div>
+                    <p>
+                        Área restrita para download da consolidadora financeira
+                    </p>
 
                 </div>
 
             </div>
 
-            <div class="auth-description">
-
-                Esta área possui acesso restrito.
-                Informe a senha para baixar o relatório financeiro.
-
-            </div>
-
-            <form method="POST">
-
-                <input
-                    type="password"
-                    name="senha"
-                    placeholder="Digite sua senha"
-                    class="password-input"
-                >
-
-                <button
-                    type="submit"
-                    class="btn btn-dark auth-button"
-                >
-                    BAIXAR RELATÓRIO
-                </button>
-
-            </form>
-
             {% if erro %}
 
-            <div class="auth-error">
+            <div class="login-error">
                 {{ erro }}
             </div>
 
             {% endif %}
 
-            <a href="/" class="back-link">
-                ← Voltar ao portal
+            <form
+                method="POST"
+                class="login-form"
+            >
+
+                <label for="senha">
+                    Senha de acesso
+                </label>
+
+                <input
+                    type="password"
+                    id="senha"
+                    name="senha"
+                    placeholder="Digite a senha"
+                    required
+                    autofocus
+                >
+
+                <button
+                    type="submit"
+                    class="login-button"
+                >
+                    🔒 ACESSAR E BAIXAR
+                </button>
+
+            </form>
+
+            <a
+                href="/"
+                class="login-back"
+            >
+                ← Voltar para o portal
             </a>
 
-        </div>
+        </section>
 
-    </div>
+    </main>
 
 </body>
 
