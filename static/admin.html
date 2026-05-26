@@ -23,503 +23,428 @@
 
 <body>
 
-    <main class="admin-page">
+    <main class="admin-container">
 
+        <!-- ===================================================== -->
         <!-- HEADER -->
+        <!-- ===================================================== -->
 
-        <header class="admin-header">
+        <header class="admin-topbar">
 
-            <div class="admin-brand">
+            <div class="admin-top-left">
 
-                <div class="admin-icon">
-                    ⚙
-                </div>
+                <img
+                    src="/static/grupo_geniale.png"
+                    class="grupo-logo"
+                    alt="Grupo Geniale"
+                >
 
-                <div>
+                <h1>
+                    GRUPO GENIALE
+                </h1>
 
-                    <h1>
-                        PAINEL TÉCNICO
-                    </h1>
+            </div>
 
-                    <p>
-                        Monitoramento completo das atualizações OMIE
-                    </p>
+            <div class="admin-top-right">
+
+                <a
+                    href="/"
+                    class="back-home-btn"
+                >
+
+                    ← VOLTAR PARA HOME
+
+                </a>
+
+                <div class="admin-clock">
+
+                    <div class="admin-clock-icon">
+                        ◷
+                    </div>
+
+                    <div>
+
+                        <strong id="admin-clock-time">
+                            08:01:24
+                        </strong>
+
+                        <span id="admin-clock-date">
+                            13/05/2025
+                        </span>
+
+                    </div>
 
                 </div>
 
             </div>
 
-            <a
-                href="/"
-                class="admin-home-button"
-            >
-
-                ← Voltar ao portal
-
-            </a>
-
         </header>
 
-        <!-- GRID -->
+        <!-- ===================================================== -->
+        <!-- NAV -->
+        <!-- ===================================================== -->
 
-        <section class="admin-grid">
+        <nav class="admin-nav">
 
-            <!-- ===================================================== -->
-            <!-- GENIALE -->
-            <!-- ===================================================== -->
+            <button class="nav-item active">
+                GERAL
+            </button>
 
-            <article class="admin-card geniale">
+            <button class="nav-item">
+                HISTÓRICO
+            </button>
 
-                <div class="admin-card-top">
+            <button class="nav-item">
+                LOGS
+            </button>
 
-                    <div class="admin-card-brand">
+            <button class="nav-item">
+                CONFIGURAÇÕES
+            </button>
 
-                        <img
-                            src="/static/logo.png"
-                            alt="Geniale"
-                        >
+            <button class="nav-item">
+                SISTEMA
+            </button>
 
-                        <div>
+        </nav>
 
-                            <h2>
-                                GENIALE
-                            </h2>
+        <!-- ===================================================== -->
+        <!-- METRICS -->
+        <!-- ===================================================== -->
 
-                            <span>
-                                Atualização OMIE
-                            </span>
+        <section class="metrics-grid">
 
-                        </div>
+            <div class="metric-card green">
 
-                    </div>
+                <span>
+                    STATUS GERAL
+                </span>
 
-                    <div class="admin-status ok">
+                <strong>
+                    OK
+                </strong>
 
-                        ✓ ONLINE
+                <small>
+                    Sistema operacional
+                </small>
 
-                    </div>
+            </div>
 
-                </div>
+            <div class="metric-card blue">
 
-                <div class="admin-metrics">
+                <span>
+                    DURAÇÃO
+                </span>
 
-                    <div class="admin-metric">
+                <strong id="metric-duration">
+                    42s
+                </strong>
 
-                        <span>
-                            Duração
-                        </span>
+                <small>
+                    Última atualização
+                </small>
 
-                        <strong id="duracao-geniale">
-                            —
-                        </strong>
+            </div>
 
-                    </div>
+            <div class="metric-card orange">
 
-                    <div class="admin-metric">
+                <span>
+                    REGISTROS
+                </span>
 
-                        <span>
-                            Registros
-                        </span>
+                <strong id="metric-registers">
+                    12.482
+                </strong>
 
-                        <strong id="registros-geniale">
-                            —
-                        </strong>
+                <small>
+                    Total processados
+                </small>
 
-                    </div>
+            </div>
 
-                    <div class="admin-metric">
+            <div class="metric-card purple">
 
-                        <span>
-                            Páginas
-                        </span>
+                <span>
+                    PÁGINAS OMIE
+                </span>
 
-                        <strong id="paginas-geniale">
-                            —
-                        </strong>
+                <strong id="metric-pages">
+                    114
+                </strong>
 
-                    </div>
+                <small>
+                    Total de páginas
+                </small>
 
-                    <div class="admin-metric">
+            </div>
 
-                        <span>
-                            Workers
-                        </span>
+            <div class="metric-card cyan">
 
-                        <strong id="workers-geniale">
-                            —
-                        </strong>
+                <span>
+                    MODO
+                </span>
 
-                    </div>
+                <strong>
+                    Completo
+                </strong>
 
-                    <div class="admin-metric">
+                <small>
+                    Tipo de execução
+                </small>
 
-                        <span>
-                            Cache
-                        </span>
+            </div>
 
-                        <strong id="cache-geniale">
-                            —
-                        </strong>
+            <div class="metric-card cyan">
 
-                    </div>
+                <span>
+                    WORKERS
+                </span>
 
-                </div>
+                <strong id="metric-workers">
+                    4
+                </strong>
 
-                <div class="admin-log-box">
+                <small>
+                    Threads ativas
+                </small>
 
-                    <div class="admin-log-title">
-                        LOG COMPLETO
-                    </div>
+            </div>
 
-                    <pre id="log-geniale"></pre>
+            <div class="metric-card green">
 
-                </div>
+                <span>
+                    CACHE
+                </span>
 
-            </article>
+                <strong>
+                    HIT
+                </strong>
 
-            <!-- ===================================================== -->
-            <!-- PANIZ -->
-            <!-- ===================================================== -->
+                <small>
+                    Dados otimizados
+                </small>
 
-            <article class="admin-card paniz">
+            </div>
 
-                <div class="admin-card-top">
+            <div class="metric-card orange">
 
-                    <div class="admin-card-brand">
+                <span>
+                    USO OMIE
+                </span>
 
-                        <img
-                            src="/static/logo_paniz.png"
-                            alt="Paniz"
-                        >
+                <strong>
+                    114 / 5.000
+                </strong>
 
-                        <div>
+                <small>
+                    Limite de requisições
+                </small>
 
-                            <h2>
-                                PANIZ
-                            </h2>
-
-                            <span>
-                                Atualização OMIE
-                            </span>
-
-                        </div>
-
-                    </div>
-
-                    <div class="admin-status ok">
-
-                        ✓ ONLINE
-
-                    </div>
-
-                </div>
-
-                <div class="admin-metrics">
-
-                    <div class="admin-metric">
-
-                        <span>
-                            Duração
-                        </span>
-
-                        <strong id="duracao-paniz">
-                            —
-                        </strong>
-
-                    </div>
-
-                    <div class="admin-metric">
-
-                        <span>
-                            Registros
-                        </span>
-
-                        <strong id="registros-paniz">
-                            —
-                        </strong>
-
-                    </div>
-
-                    <div class="admin-metric">
-
-                        <span>
-                            Páginas
-                        </span>
-
-                        <strong id="paginas-paniz">
-                            —
-                        </strong>
-
-                    </div>
-
-                    <div class="admin-metric">
-
-                        <span>
-                            Workers
-                        </span>
-
-                        <strong id="workers-paniz">
-                            —
-                        </strong>
-
-                    </div>
-
-                    <div class="admin-metric">
-
-                        <span>
-                            Cache
-                        </span>
-
-                        <strong id="cache-paniz">
-                            —
-                        </strong>
-
-                    </div>
-
-                </div>
-
-                <div class="admin-log-box">
-
-                    <div class="admin-log-title">
-                        LOG COMPLETO
-                    </div>
-
-                    <pre id="log-paniz"></pre>
-
-                </div>
-
-            </article>
-
-            <!-- ===================================================== -->
-            <!-- FINANCEIRO -->
-            <!-- ===================================================== -->
-
-            <article class="admin-card financeiro">
-
-                <div class="admin-card-top">
-
-                    <div class="admin-card-brand financeiro-brand">
-
-                        <div class="financeiro-admin-logos">
-
-                            <img
-                                src="/static/logo.png"
-                                alt="Geniale"
-                            >
-
-                            <div class="financeiro-admin-plus">
-                                +
-                            </div>
-
-                            <img
-                                src="/static/logo_paniz.png"
-                                alt="Paniz"
-                            >
-
-                        </div>
-
-                        <div>
-
-                            <h2>
-                                FINANCEIRO
-                            </h2>
-
-                            <span>
-                                Consolidadora Financeira
-                            </span>
-
-                        </div>
-
-                    </div>
-
-                    <div class="admin-status ok">
-
-                        ✓ ONLINE
-
-                    </div>
-
-                </div>
-
-                <div class="admin-metrics">
-
-                    <div class="admin-metric">
-
-                        <span>
-                            Duração
-                        </span>
-
-                        <strong id="duracao-financeiro">
-                            —
-                        </strong>
-
-                    </div>
-
-                    <div class="admin-metric">
-
-                        <span>
-                            Registros
-                        </span>
-
-                        <strong id="registros-financeiro">
-                            —
-                        </strong>
-
-                    </div>
-
-                    <div class="admin-metric">
-
-                        <span>
-                            Páginas
-                        </span>
-
-                        <strong id="paginas-financeiro">
-                            —
-                        </strong>
-
-                    </div>
-
-                    <div class="admin-metric">
-
-                        <span>
-                            Workers
-                        </span>
-
-                        <strong id="workers-financeiro">
-                            —
-                        </strong>
-
-                    </div>
-
-                    <div class="admin-metric">
-
-                        <span>
-                            Cache
-                        </span>
-
-                        <strong id="cache-financeiro">
-                            —
-                        </strong>
-
-                    </div>
-
-                </div>
-
-                <div class="admin-log-box">
-
-                    <div class="admin-log-title">
-                        LOG COMPLETO
-                    </div>
-
-                    <pre id="log-financeiro"></pre>
-
-                </div>
-
-            </article>
+            </div>
 
         </section>
+
+        <!-- ===================================================== -->
+        <!-- LOGS -->
+        <!-- ===================================================== -->
+
+        <section class="admin-bottom-grid">
+
+            <!-- LOGS -->
+
+            <div class="logs-panel">
+
+                <div class="panel-header">
+
+                    <h2>
+                        LOGS DA ÚLTIMA EXECUÇÃO
+                    </h2>
+
+                    <button class="clear-btn">
+                        🗑 LIMPAR LOGS
+                    </button>
+
+                </div>
+
+                <pre id="system-log">
+[08:00:40] Iniciando atualização — GENIALE COMERCIAL
+[08:00:40] Modo de execução: COMPLETO
+[08:00:40] Workers iniciados: 4
+[08:00:41] Buscando dados da OMIE...
+[08:00:42] Página 1/114 carregada (100 registros)
+[08:00:42] Página 2/114 carregada (100 registros)
+[08:00:43] Página 3/114 carregada (100 registros)
+[08:00:43] ...
+
+[08:01:05] Processamento concluído
+[08:01:05] Registros processados: 12.482
+[08:01:05] Cache: HIT
+[08:01:05] Duração total: 42s
+
+[08:01:05] Atualização finalizada com sucesso!
+                </pre>
+
+            </div>
+
+            <!-- HISTORY -->
+
+            <div class="history-panel">
+
+                <div class="panel-header">
+
+                    <h2>
+                        HISTÓRICO RECENTE
+                    </h2>
+
+                </div>
+
+                <div class="history-list">
+
+                    <div class="history-item">
+
+                        <div class="history-dot"></div>
+
+                        <span>
+                            13/05/2025 08:01:05
+                        </span>
+
+                        <strong>
+                            Sucesso
+                        </strong>
+
+                        <small>
+                            42s
+                        </small>
+
+                    </div>
+
+                    <div class="history-item">
+
+                        <div class="history-dot"></div>
+
+                        <span>
+                            13/05/2025 07:31:02
+                        </span>
+
+                        <strong>
+                            Sucesso
+                        </strong>
+
+                        <small>
+                            38s
+                        </small>
+
+                    </div>
+
+                    <div class="history-item">
+
+                        <div class="history-dot"></div>
+
+                        <span>
+                            13/05/2025 07:01:03
+                        </span>
+
+                        <strong>
+                            Sucesso
+                        </strong>
+
+                        <small>
+                            41s
+                        </small>
+
+                    </div>
+
+                    <div class="history-item">
+
+                        <div class="history-dot"></div>
+
+                        <span>
+                            13/05/2025 06:31:04
+                        </span>
+
+                        <strong>
+                            Sucesso
+                        </strong>
+
+                        <small>
+                            39s
+                        </small>
+
+                    </div>
+
+                </div>
+
+                <a
+                    href="#"
+                    class="history-link"
+                >
+
+                    VER HISTÓRICO COMPLETO →
+
+                </a>
+
+            </div>
+
+        </section>
+
+        <!-- ===================================================== -->
+        <!-- FOOTER -->
+        <!-- ===================================================== -->
+
+        <footer class="admin-footer">
+
+            <div class="admin-footer-left">
+
+                <div class="shield-icon">
+                    🛡
+                </div>
+
+                Sistema monitorado em tempo real
+
+            </div>
+
+            <div class="admin-footer-right">
+
+                Última atualização:
+                <strong>
+                    13/05/2025 08:01:05
+                </strong>
+
+            </div>
+
+        </footer>
 
     </main>
 
     <script>
 
-        function extrair(log, chave) {
+        function atualizarRelogioAdmin() {
 
-            if (!log) {
-                return "—";
-            }
+            const agora = new Date();
 
-            const linhas = log.split("\n");
+            document.getElementById("admin-clock-time")
+                .innerText =
+                    agora.toLocaleTimeString(
+                        "pt-BR",
+                        {
+                            hour12: false
+                        }
+                    );
 
-            for (const linha of linhas) {
-
-                if (linha.startsWith(chave + ":")) {
-
-                    return linha
-                        .replace(chave + ":", "")
-                        .trim();
-
-                }
-
-            }
-
-            return "—";
+            document.getElementById("admin-clock-date")
+                .innerText =
+                    agora.toLocaleDateString(
+                        "pt-BR"
+                    );
 
         }
 
-        async function atualizarPainel() {
+        atualizarRelogioAdmin();
 
-            try {
-
-                const resposta = await fetch("/api/status");
-
-                const relatorios = await resposta.json();
-
-                relatorios.forEach(relatorio => {
-
-                    const tipo = relatorio.tipo;
-
-                    const log = relatorio.status.ultimo_log || "";
-
-                    const logElement =
-                        document.getElementById(`log-${tipo}`);
-
-                    if (logElement) {
-                        logElement.innerText = log;
-                    }
-
-                    const duracao =
-                        document.getElementById(`duracao-${tipo}`);
-
-                    const registros =
-                        document.getElementById(`registros-${tipo}`);
-
-                    const paginas =
-                        document.getElementById(`paginas-${tipo}`);
-
-                    const workers =
-                        document.getElementById(`workers-${tipo}`);
-
-                    const cache =
-                        document.getElementById(`cache-${tipo}`);
-
-                    if (duracao) {
-                        duracao.innerText =
-                            extrair(log, "DURAÇÃO");
-                    }
-
-                    if (registros) {
-                        registros.innerText =
-                            extrair(log, "REGISTROS OMIE");
-                    }
-
-                    if (paginas) {
-                        paginas.innerText =
-                            extrair(log, "PÁGINAS OMIE");
-                    }
-
-                    if (workers) {
-                        workers.innerText =
-                            extrair(log, "WORKERS OMIE");
-                    }
-
-                    if (cache) {
-                        cache.innerText =
-                            extrair(log, "CACHE");
-                    }
-
-                });
-
-            } catch (erro) {
-
-                console.log(erro);
-
-            }
-
-        }
-
-        atualizarPainel();
-
-        setInterval(atualizarPainel, 5000);
+        setInterval(
+            atualizarRelogioAdmin,
+            1000
+        );
 
     </script>
 
