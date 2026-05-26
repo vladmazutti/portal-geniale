@@ -1,0 +1,490 @@
+<!-- static/admin.html -->
+
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Painel Técnico
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="/static/style.css"
+    >
+
+</head>
+
+<body>
+
+    <main class="admin-page">
+
+        <!-- HEADER -->
+
+        <header class="admin-header">
+
+            <div class="admin-brand">
+
+                <div class="admin-icon">
+                    ⚙
+                </div>
+
+                <div>
+
+                    <h1>
+                        PAINEL TÉCNICO
+                    </h1>
+
+                    <p>
+                        Monitoramento completo das atualizações OMIE
+                    </p>
+
+                </div>
+
+            </div>
+
+            <a
+                href="/"
+                class="admin-home-button"
+            >
+                ← Voltar ao portal
+            </a>
+
+        </header>
+
+        <!-- GRID -->
+
+        <section class="admin-grid">
+
+            <!-- GENIALE -->
+
+            <article class="admin-card geniale">
+
+                <div class="admin-card-top">
+
+                    <div class="admin-card-brand">
+
+                        <img
+                            src="/static/geniale_card.png"
+                            alt="Geniale"
+                        >
+
+                        <div>
+
+                            <h2>
+                                GENIALE
+                            </h2>
+
+                            <span>
+                                Atualização OMIE
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <div class="admin-status ok">
+
+                        ✓ ONLINE
+
+                    </div>
+
+                </div>
+
+                <div class="admin-metrics">
+
+                    <div class="admin-metric">
+
+                        <span>
+                            Duração
+                        </span>
+
+                        <strong id="duracao-geniale">
+                            —
+                        </strong>
+
+                    </div>
+
+                    <div class="admin-metric">
+
+                        <span>
+                            Registros
+                        </span>
+
+                        <strong id="registros-geniale">
+                            —
+                        </strong>
+
+                    </div>
+
+                    <div class="admin-metric">
+
+                        <span>
+                            Páginas
+                        </span>
+
+                        <strong id="paginas-geniale">
+                            —
+                        </strong>
+
+                    </div>
+
+                    <div class="admin-metric">
+
+                        <span>
+                            Workers
+                        </span>
+
+                        <strong id="workers-geniale">
+                            —
+                        </strong>
+
+                    </div>
+
+                    <div class="admin-metric">
+
+                        <span>
+                            Cache
+                        </span>
+
+                        <strong id="cache-geniale">
+                            —
+                        </strong>
+
+                    </div>
+
+                </div>
+
+                <div class="admin-log-box">
+
+                    <div class="admin-log-title">
+                        LOG COMPLETO
+                    </div>
+
+                    <pre id="log-geniale"></pre>
+
+                </div>
+
+            </article>
+
+            <!-- PANIZ -->
+
+            <article class="admin-card paniz">
+
+                <div class="admin-card-top">
+
+                    <div class="admin-card-brand">
+
+                        <img
+                            src="/static/paniz_card.png"
+                            alt="Paniz"
+                        >
+
+                        <div>
+
+                            <h2>
+                                PANIZ
+                            </h2>
+
+                            <span>
+                                Atualização OMIE
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <div class="admin-status ok">
+
+                        ✓ ONLINE
+
+                    </div>
+
+                </div>
+
+                <div class="admin-metrics">
+
+                    <div class="admin-metric">
+
+                        <span>
+                            Duração
+                        </span>
+
+                        <strong id="duracao-paniz">
+                            —
+                        </strong>
+
+                    </div>
+
+                    <div class="admin-metric">
+
+                        <span>
+                            Registros
+                        </span>
+
+                        <strong id="registros-paniz">
+                            —
+                        </strong>
+
+                    </div>
+
+                    <div class="admin-metric">
+
+                        <span>
+                            Páginas
+                        </span>
+
+                        <strong id="paginas-paniz">
+                            —
+                        </strong>
+
+                    </div>
+
+                    <div class="admin-metric">
+
+                        <span>
+                            Workers
+                        </span>
+
+                        <strong id="workers-paniz">
+                            —
+                        </strong>
+
+                    </div>
+
+                    <div class="admin-metric">
+
+                        <span>
+                            Cache
+                        </span>
+
+                        <strong id="cache-paniz">
+                            —
+                        </strong>
+
+                    </div>
+
+                </div>
+
+                <div class="admin-log-box">
+
+                    <div class="admin-log-title">
+                        LOG COMPLETO
+                    </div>
+
+                    <pre id="log-paniz"></pre>
+
+                </div>
+
+            </article>
+
+            <!-- FINANCEIRO -->
+
+            <article class="admin-card financeiro">
+
+                <div class="admin-card-top">
+
+                    <div class="admin-card-brand financeiro-brand">
+
+                        <div class="financeiro-admin-logos">
+
+                            <img
+                                src="/static/geniale_mini.png"
+                                alt="Geniale"
+                            >
+
+                            <div class="financeiro-admin-plus">
+                                +
+                            </div>
+
+                            <img
+                                src="/static/paniz_mini.png"
+                                alt="Paniz"
+                            >
+
+                        </div>
+
+                        <div>
+
+                            <h2>
+                                FINANCEIRO
+                            </h2>
+
+                            <span>
+                                Consolidadora Financeira
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <div class="admin-status ok">
+
+                        ✓ ONLINE
+
+                    </div>
+
+                </div>
+
+                <div class="admin-metrics">
+
+                    <div class="admin-metric">
+
+                        <span>
+                            Duração
+                        </span>
+
+                        <strong id="duracao-financeiro">
+                            —
+                        </strong>
+
+                    </div>
+
+                    <div class="admin-metric">
+
+                        <span>
+                            Registros
+                        </span>
+
+                        <strong id="registros-financeiro">
+                            —
+                        </strong>
+
+                    </div>
+
+                    <div class="admin-metric">
+
+                        <span>
+                            Páginas
+                        </span>
+
+                        <strong id="paginas-financeiro">
+                            —
+                        </strong>
+
+                    </div>
+
+                    <div class="admin-metric">
+
+                        <span>
+                            Workers
+                        </span>
+
+                        <strong id="workers-financeiro">
+                            —
+                        </strong>
+
+                    </div>
+
+                    <div class="admin-metric">
+
+                        <span>
+                            Cache
+                        </span>
+
+                        <strong id="cache-financeiro">
+                            —
+                        </strong>
+
+                    </div>
+
+                </div>
+
+                <div class="admin-log-box">
+
+                    <div class="admin-log-title">
+                        LOG COMPLETO
+                    </div>
+
+                    <pre id="log-financeiro"></pre>
+
+                </div>
+
+            </article>
+
+        </section>
+
+    </main>
+
+    <script>
+
+        function extrair(log, chave) {
+
+            if (!log) return "—";
+
+            const linhas = log.split("\n");
+
+            for (const linha of linhas) {
+
+                if (linha.startsWith(chave + ":")) {
+
+                    return linha
+                        .replace(chave + ":", "")
+                        .trim();
+
+                }
+
+            }
+
+            return "—";
+
+        }
+
+        async function atualizarPainel() {
+
+            try {
+
+                const resposta = await fetch("/api/status");
+
+                const relatorios = await resposta.json();
+
+                relatorios.forEach(relatorio => {
+
+                    const tipo = relatorio.tipo;
+
+                    const log = relatorio.status.ultimo_log || "";
+
+                    document.getElementById(`log-${tipo}`).innerText = log;
+
+                    document.getElementById(`duracao-${tipo}`).innerText =
+                        extrair(log, "DURAÇÃO");
+
+                    document.getElementById(`registros-${tipo}`).innerText =
+                        extrair(log, "REGISTROS OMIE");
+
+                    document.getElementById(`paginas-${tipo}`).innerText =
+                        extrair(log, "PÁGINAS OMIE");
+
+                    document.getElementById(`workers-${tipo}`).innerText =
+                        extrair(log, "WORKERS OMIE");
+
+                    document.getElementById(`cache-${tipo}`).innerText =
+                        extrair(log, "CACHE");
+
+                });
+
+            } catch (erro) {
+
+                console.log(erro);
+
+            }
+
+        }
+
+        atualizarPainel();
+
+        setInterval(atualizarPainel, 5000);
+
+    </script>
+
+</body>
+
+</html>
