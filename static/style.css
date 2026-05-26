@@ -1,6 +1,6 @@
-/* =========================================================
-   PARTE 1 — BASE / HOME / ESTRUTURA
-========================================================= */
+/* ===================================================== */
+/* RESET */
+/* ===================================================== */
 
 * {
     margin: 0;
@@ -8,1985 +8,1141 @@
     box-sizing: border-box;
 }
 
-:root {
-
-    --bg: #03060c;
-
-    --panel: #07111f;
-    --panel-2: #0a1728;
-
-    --line: rgba(255,255,255,0.10);
-    --line-soft: rgba(255,255,255,0.06);
-
-    --text: #f7f8fc;
-    --muted: #aab3c2;
-
-    --green: #20e083;
-
-    --geniale: #ff8800;
-    --geniale-2: #ffb000;
-
-    --paniz: #9a39ff;
-    --paniz-2: #5d28b4;
-
-    --financeiro-1: #ff8800;
-    --financeiro-2: #9a39ff;
-}
-
 body {
 
-    min-height: 100vh;
-
     background:
-        radial-gradient(circle at 5% 8%, rgba(255,136,0,0.15), transparent 26%),
-        radial-gradient(circle at 96% 45%, rgba(154,57,255,0.12), transparent 28%),
-        linear-gradient(180deg, #06101c 0%, #02050a 100%);
+        radial-gradient(circle at top, #07111f 0%, #02060d 65%);
 
-    color: var(--text);
+    color: #ffffff;
 
     font-family:
-        Inter,
-        Segoe UI,
-        Arial,
+        "Segoe UI",
         sans-serif;
-}
-
-/* =========================================================
-   HOME
-========================================================= */
-
-.page {
-
-    width: min(95vw, 1680px);
-
-    margin: 0 auto;
-
-    padding: 12px 0 18px;
-}
-
-/* =========================================================
-   HEADER
-========================================================= */
-
-.header {
-
-    height: 76px;
-
-    display: flex;
-
-    justify-content: space-between;
-
-    align-items: center;
-}
-
-.brand {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 22px;
-}
-
-.brand-logo {
-
-    width: 210px;
-
-    max-height: 64px;
-
-    object-fit: contain;
-}
-
-.brand-divider {
-
-    width: 1px;
-
-    height: 56px;
-
-    background: var(--line);
-}
-
-.brand h1 {
-
-    font-size: 25px;
-
-    font-weight: 950;
-
-    letter-spacing: -0.3px;
-}
-
-.brand p {
-
-    margin-top: 4px;
-
-    color: var(--muted);
-
-    font-size: 13px;
-}
-
-/* =========================================================
-   CLOCK
-========================================================= */
-
-.system-clock {
-
-    height: 66px;
-
-    min-width: 330px;
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 14px;
-
-    padding: 0 18px;
-
-    border-radius: 14px;
-
-    border: 1px solid rgba(120,150,255,0.28);
-
-    background: rgba(7,15,28,0.78);
-
-    box-shadow:
-        0 0 24px rgba(120,150,255,0.10);
-}
-
-.clock-icon {
-
-    width: 36px;
-
-    height: 36px;
-
-    border-radius: 50%;
-
-    border: 3px solid var(--geniale);
-
-    color: var(--geniale);
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    font-size: 22px;
-}
-
-.system-clock span {
-
-    display: block;
-
-    color: var(--muted);
-
-    font-size: 12px;
-
-    margin-bottom: 2px;
-}
-
-.system-clock strong {
-
-    font-size: 17px;
-
-    font-weight: 950;
-}
-
-.online-dot {
-
-    margin-left: auto;
-
-    width: 12px;
-
-    height: 12px;
-
-    border-radius: 50%;
-
-    background: #18ff82;
-
-    box-shadow:
-        0 0 16px rgba(24,255,130,0.9);
-}
-
-/* =========================================================
-   DASHBOARD
-========================================================= */
-
-.dashboard {
-
-    margin-top: 10px;
-
-    border-radius: 18px;
-
-    border: 1px solid rgba(120,150,255,0.22);
-
-    background: rgba(5,12,22,0.72);
-
-    padding: 16px;
-
-    box-shadow:
-        0 24px 90px rgba(0,0,0,0.42),
-        inset 0 0 40px rgba(120,150,255,0.03);
-}
-
-/* =========================================================
-   TITULO
-========================================================= */
-
-.dashboard-title {
-
-    text-align: center;
-
-    padding-bottom: 16px;
-}
-
-.title-line {
-
-    display: inline-block;
-
-    width: 52px;
-
-    height: 2px;
-
-    background: var(--geniale);
-
-    vertical-align: middle;
-
-    margin: 0 10px;
-
-    box-shadow:
-        0 0 14px rgba(255,136,0,0.8);
-}
-
-.title-icon {
-
-    display: inline-block;
-
-    color: var(--geniale);
-
-    font-size: 19px;
-
-    vertical-align: middle;
-
-    margin-right: 8px;
-}
-
-.dashboard-title h2 {
-
-    display: inline-block;
-
-    font-size: 27px;
-
-    font-weight: 950;
-
-    vertical-align: middle;
-}
-
-.dashboard-title p {
-
-    margin-top: 6px;
-
-    color: var(--muted);
-
-    font-size: 13px;
-}
-
-/* =========================================================
-   CARDS CONTAINER
-========================================================= */
-
-.cards {
-
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 14px;
-}
-
-/* =========================================================
-   FOOTER
-========================================================= */
-
-.footer-bar {
-
-    margin-top: 16px;
-
-    height: 64px;
-
-    border-radius: 14px;
-
-    border: 1px solid rgba(120,150,255,0.18);
-
-    background: rgba(5,13,24,0.84);
-
-    padding: 0 20px;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-}
-
-.footer-left {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 12px;
-
-    color: var(--muted);
-
-    font-size: 13px;
-}
-
-.footer-left span {
-
-    width: 28px;
-
-    height: 28px;
-
-    border-radius: 50%;
-
-    border: 2px solid var(--geniale);
-
-    color: var(--geniale);
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-}
-
-.admin-button {
-
-    height: 42px;
-
-    padding: 0 22px;
-
-    border-radius: 10px;
-
-    text-decoration: none;
-
-    background:
-        linear-gradient(
-            135deg,
-            rgba(255,136,0,0.18),
-            rgba(154,57,255,0.18)
-        );
-
-    border: 1px solid rgba(255,255,255,0.10);
-
-    color: #fff;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    font-size: 13px;
-
-    font-weight: 900;
-
-    transition: 0.2s ease;
-}
-
-.admin-button:hover {
-
-    transform: translateY(-2px);
-
-    filter: brightness(1.12);
-}
-
-/* =========================================================
-   LOGIN FINANCEIRO
-========================================================= */
-
-.login-page {
 
     min-height: 100vh;
 
-    display: flex;
+    overflow-x: hidden;
 
-    align-items: center;
-
-    justify-content: center;
-
-    padding: 30px;
 }
 
-.login-card {
+/* ===================================================== */
+/* HOME */
+/* ===================================================== */
 
-    position: relative;
-
-    overflow: hidden;
+.home-container {
 
     width: 100%;
-
-    max-width: 520px;
-
-    border-radius: 22px;
-
-    border: 1px solid rgba(255,255,255,0.10);
-
-    background:
-        linear-gradient(
-            180deg,
-            rgba(9,21,37,0.96),
-            rgba(5,11,20,0.96)
-        );
-
-    padding: 36px;
-
-    box-shadow:
-        0 24px 80px rgba(0,0,0,0.45);
-}
-
-.login-card::before {
-
-    content: "";
-
-    position: absolute;
-
-    inset: -1px auto -1px -1px;
-
-    width: 7px;
-
-    border-radius: 22px 0 0 22px;
-
-    background:
-        linear-gradient(
-            180deg,
-            var(--financeiro-1),
-            var(--financeiro-2)
-        );
-}
-
-.login-header {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 20px;
-
-    margin-bottom: 28px;
-}
-
-.login-logo {
-
-    width: 78px;
-
-    height: 78px;
-
-    border-radius: 24px;
-
-    background:
-        linear-gradient(
-            135deg,
-            var(--financeiro-1),
-            var(--financeiro-2)
-        );
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    font-size: 34px;
-}
-
-.login-header h1 {
-
-    font-size: 28px;
-
-    font-weight: 950;
-
-    margin-bottom: 5px;
-
-    background:
-        linear-gradient(
-            90deg,
-            var(--financeiro-1),
-            var(--financeiro-2)
-        );
-
-    -webkit-background-clip: text;
-
-    color: transparent;
-}
-
-.login-header p {
-
-    color: var(--muted);
-
-    font-size: 14px;
-}
-
-.login-form label {
-
-    display: block;
-
-    margin-bottom: 10px;
-
-    color: #d9deea;
-
-    font-size: 14px;
-
-    font-weight: 700;
-}
-
-.login-form input {
-
-    width: 100%;
-
-    height: 56px;
-
-    border-radius: 12px;
-
-    border: 1px solid rgba(255,255,255,0.10);
-
-    background: rgba(255,255,255,0.05);
-
-    color: #fff;
-
-    padding: 0 18px;
-
-    font-size: 15px;
-
-    outline: none;
-}
-
-.login-form input:focus {
-
-    border-color: rgba(255,136,0,0.75);
-
-    box-shadow:
-        0 0 0 4px rgba(255,136,0,0.10);
-}
-
-.login-button {
-
-    width: 100%;
-
-    height: 54px;
-
-    margin-top: 22px;
-
-    border: 0;
-
-    border-radius: 12px;
-
-    cursor: pointer;
-
-    color: #fff;
-
-    font-size: 14px;
-
-    font-weight: 900;
-
-    background:
-        linear-gradient(
-            135deg,
-            var(--financeiro-2),
-            var(--financeiro-1)
-        );
-
-    transition: 0.2s ease;
-}
-
-.login-button:hover {
-
-    transform: translateY(-2px);
-
-    filter: brightness(1.08);
-}
-
-.login-back {
-
-    display: inline-block;
-
-    margin-top: 20px;
-
-    text-decoration: none;
-
-    color: var(--muted);
-
-    font-size: 13px;
-}
-/* =========================================================
-   PARTE 2 — CARDS / STATUS / BOTÕES / MÉTRICAS
-========================================================= */
-
-/* =========================================================
-   CARD
-========================================================= */
-
-.card {
-
-    position: relative;
-
-    overflow: hidden;
-
-    border-radius: 16px;
-
-    border: 1px solid var(--line);
-
-    background:
-        linear-gradient(
-            180deg,
-            rgba(9,21,37,0.92),
-            rgba(5,11,20,0.92)
-        );
-
-    box-shadow:
-        0 16px 55px rgba(0,0,0,0.32),
-        inset 0 1px 0 rgba(255,255,255,0.03);
-}
-
-.card::before {
-
-    content: "";
-
-    position: absolute;
-
-    inset: -1px auto -1px -1px;
-
-    width: 6px;
-
-    border-radius: 16px 0 0 16px;
-}
-
-.card::after {
-
-    content: "";
-
-    position: absolute;
-
-    inset: 0;
-
-    pointer-events: none;
-}
-
-/* =========================================================
-   GENIALE
-========================================================= */
-
-.card.geniale::before {
-
-    background:
-        linear-gradient(
-            180deg,
-            #fff000,
-            var(--geniale),
-            #ff3d00
-        );
-
-    box-shadow:
-        0 0 24px rgba(255,136,0,0.95);
-}
-
-.card.geniale::after {
-
-    background:
-        radial-gradient(
-            circle at 0% 30%,
-            rgba(255,136,0,0.50),
-            transparent 20%
-        );
-}
-
-/* =========================================================
-   PANIZ
-========================================================= */
-
-.card.paniz {
-
-    border-color:
-        rgba(154,57,255,0.40);
-}
-
-.card.paniz::before {
-
-    background:
-        linear-gradient(
-            180deg,
-            #ff4cff,
-            var(--paniz),
-            #5925c7
-        );
-
-    box-shadow:
-        0 0 24px rgba(154,57,255,0.90);
-}
-
-.card.paniz::after {
-
-    background:
-        radial-gradient(
-            circle at 0% 30%,
-            rgba(154,57,255,0.45),
-            transparent 20%
-        );
-}
-
-/* =========================================================
-   FINANCEIRO
-========================================================= */
-
-.card.financeiro {
-
-    border-color:
-        rgba(255,136,0,0.22);
-}
-
-.card.financeiro::before {
-
-    background:
-        linear-gradient(
-            180deg,
-            var(--financeiro-1),
-            var(--financeiro-2)
-        );
-
-    box-shadow:
-        0 0 24px rgba(255,136,0,0.75);
-}
-
-.card.financeiro::after {
-
-    background:
-        radial-gradient(
-            circle at 0% 35%,
-            rgba(255,136,0,0.34),
-            transparent 20%
-        ),
-
-        radial-gradient(
-            circle at 100% 55%,
-            rgba(154,57,255,0.18),
-            transparent 25%
-        );
-}
-
-/* =========================================================
-   CARD TOP
-========================================================= */
-
-.card-top {
-
-    position: relative;
-
-    z-index: 2;
-
-    min-height: 118px;
-
-    padding: 16px 22px 10px;
-
-    display: grid;
-
-    grid-template-columns:
-        1.45fr
-        0.72fr
-        0.92fr
-        1fr;
-
-    gap: 22px;
-
-    align-items: center;
-}
-
-/* =========================================================
-   IDENTIDADE
-========================================================= */
-
-.identity {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 20px;
-}
-
-.logo-box {
-
-    width: 160px;
-
-    height: 92px;
-
-    flex: 0 0 160px;
-
-    border-radius: 14px;
-
-    background: #ffffff;
-
-    overflow: hidden;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-}
-
-.logo-box img {
-
-    width: 88%;
-
-    max-height: 88%;
-
-    object-fit: contain;
-}
-
-/* =========================================================
-   FINANCEIRO LOGOS
-========================================================= */
-
-.financeiro-logo {
-
-    background:
-        radial-gradient(
-            circle at 25% 20%,
-            rgba(255,136,0,0.28),
-            transparent 40%
-        ),
-
-        linear-gradient(
-            135deg,
-            rgba(255,136,0,0.10),
-            rgba(154,57,255,0.12)
-        ),
-
-        rgba(255,255,255,0.04);
-
-    border:
-        1px solid rgba(255,255,255,0.10);
-}
-
-.financeiro-logos {
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    gap: 10px;
-}
-
-.financeiro-logos img {
-
-    width: 54px;
-
-    height: 54px;
-
-    object-fit: contain;
-}
-
-.financeiro-plus {
-
-    color: #ffffff;
-
-    font-size: 22px;
-
-    font-weight: 900;
-}
-
-/* =========================================================
-   TEXTO
-========================================================= */
-
-.identity-text h3 {
-
-    font-size: 30px;
-
-    font-weight: 950;
-
-    margin-bottom: 8px;
-
-    letter-spacing: -0.3px;
-}
-
-.geniale .identity-text h3 {
-
-    color: var(--geniale);
-}
-
-.paniz .identity-text h3 {
-
-    color: var(--paniz);
-}
-
-.financeiro .identity-text h3 {
-
-    background:
-        linear-gradient(
-            90deg,
-            var(--financeiro-1),
-            var(--financeiro-2)
-        );
-
-    -webkit-background-clip: text;
-
-    color: transparent;
-}
-
-.identity-text strong {
-
-    display: block;
-
-    font-size: 15px;
-
-    margin-bottom: 4px;
-}
-
-.identity-text p {
-
-    color: var(--muted);
-
-    font-size: 12px;
-}
-
-/* =========================================================
-   COLUNAS
-========================================================= */
-
-.info-column {
-
-    min-height: 82px;
-
-    border-left: 1px solid var(--line);
-
-    padding-left: 18px;
-
-    display: flex;
-
-    flex-direction: column;
-
-    justify-content: center;
-}
-
-.info-column > span {
-
-    color: #d4d9e2;
-
-    font-size: 11px;
-
-    margin-bottom: 10px;
-}
-
-/* =========================================================
-   STATUS
-========================================================= */
-
-.status-box {
-
-    height: 46px;
-
-    min-width: 200px;
-
-    width: fit-content;
-
-    padding: 0 14px;
-
-    border-radius: 9px;
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 11px;
-}
-
-.status-box.ok {
-
-    background:
-        rgba(32,224,131,0.10);
-
-    border:
-        1px solid rgba(32,224,131,0.34);
-}
-
-.status-box.atualizando {
-
-    background:
-        rgba(255,204,102,0.10);
-
-    border:
-        1px solid rgba(255,204,102,0.30);
-}
-
-.status-box.erro {
-
-    background:
-        rgba(255,85,85,0.10);
-
-    border:
-        1px solid rgba(255,85,85,0.30);
-}
-
-.check {
-
-    width: 28px;
-
-    height: 28px;
-
-    border-radius: 50%;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    font-size: 15px;
-
-    font-weight: 900;
-}
-
-.status-box.ok .check {
-
-    background: var(--green);
-
-    color: #04130c;
-}
-
-.status-box.atualizando .check {
-
-    background: #ffd36b;
-
-    color: #2b2200;
-}
-
-.status-box.erro .check {
-
-    background: #ff6666;
-
-    color: #250404;
-}
-
-.status-box strong {
-
-    display: block;
-
-    font-size: 17px;
-
-    line-height: 1.1;
-}
-
-.status-box.ok strong {
-
-    color: var(--green);
-}
-
-.status-box.atualizando strong {
-
-    color: #ffd36b;
-}
-
-.status-box.erro strong {
-
-    color: #ff8d8d;
-}
-
-.status-box small {
-
-    display: block;
-
-    font-size: 11px;
-}
-
-.status-box.ok small {
-
-    color: #aaf8ce;
-}
-
-.status-box.atualizando small {
-
-    color: #ffe7a3;
-}
-
-.status-box.erro small {
-
-    color: #ffb0b0;
-}
-
-/* =========================================================
-   DATA
-========================================================= */
-
-.date-info {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 12px;
-}
-
-.date-icon {
-
-    width: 24px;
-
-    height: 24px;
-
-    border-radius: 5px;
-
-    border: 2px solid #d0d7e2;
-
-    color: #d0d7e2;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    font-size: 10px;
-}
-
-.date-info strong {
-
-    font-size: 15px;
-
-    font-weight: 700;
-}
-
-/* =========================================================
-   AÇÕES
-========================================================= */
-
-.actions {
-
-    display: flex;
-
-    gap: 10px;
-}
-
-.btn {
-
-    min-width: 138px;
-
-    height: 46px;
-
-    border-radius: 10px;
-
-    text-decoration: none;
-
-    border: 0;
-
-    outline: none;
-
-    cursor: pointer;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    gap: 9px;
-
-    color: #ffffff;
-
-    font-size: 13px;
-
-    font-weight: 900;
-
-    transition: 0.18s ease;
-}
-
-.btn b {
-
-    font-size: 20px;
-
-    line-height: 1;
-}
-
-.btn:hover {
-
-    transform: translateY(-2px);
-
-    filter: brightness(1.12);
-}
-
-.btn:disabled {
-
-    opacity: 0.55;
-
-    cursor: not-allowed;
-
-    transform: none;
-}
-
-/* =========================================================
-   UPDATE
-========================================================= */
-
-.btn-update {
-
-    background:
-        rgba(255,255,255,0.05);
-
-    border:
-        1px solid currentColor;
-}
-
-.geniale .btn-update {
-
-    color: var(--geniale);
-}
-
-.paniz .btn-update {
-
-    color: var(--paniz);
-}
-
-.financeiro .btn-update {
-
-    color: var(--financeiro-1);
-}
-
-/* =========================================================
-   DOWNLOAD
-========================================================= */
-
-.geniale .btn-download {
-
-    background:
-        linear-gradient(
-            135deg,
-            var(--geniale),
-            #ff5f00
-        );
-}
-
-.paniz .btn-download {
-
-    background:
-        linear-gradient(
-            135deg,
-            #6b2acb,
-            var(--paniz)
-        );
-}
-
-.financeiro .btn-download {
-
-    background:
-        linear-gradient(
-            135deg,
-            var(--financeiro-2),
-            var(--financeiro-1)
-        );
-}
-/* =========================================================
-   PARTE 3 — ADMIN PANEL / LOGS / RESPONSIVO
-========================================================= */
-
-/* =========================================================
-   ADMIN PAGE
-========================================================= */
-
-.admin-page {
-
-    width: min(96vw, 1780px);
+    max-width: 1450px;
 
     margin: 0 auto;
-
-    padding: 20px 0 30px;
-}
-
-/* =========================================================
-   ADMIN HEADER
-========================================================= */
-
-.admin-header {
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-
-    margin-bottom: 18px;
-}
-
-.admin-brand {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 18px;
-}
-
-.admin-icon {
-
-    width: 64px;
-
-    height: 64px;
-
-    border-radius: 18px;
-
-    background:
-        linear-gradient(
-            135deg,
-            var(--financeiro-1),
-            var(--financeiro-2)
-        );
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    font-size: 28px;
-
-    box-shadow:
-        0 0 26px rgba(255,136,0,0.28);
-}
-
-.admin-brand h1 {
-
-    font-size: 32px;
-
-    font-weight: 950;
-
-    letter-spacing: -0.5px;
-}
-
-.admin-brand p {
-
-    margin-top: 4px;
-
-    color: var(--muted);
-
-    font-size: 14px;
-}
-
-.admin-home-button {
-
-    height: 46px;
-
-    padding: 0 22px;
-
-    border-radius: 12px;
-
-    text-decoration: none;
-
-    color: #fff;
-
-    font-size: 13px;
-
-    font-weight: 900;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    border: 1px solid rgba(255,255,255,0.10);
-
-    background:
-        linear-gradient(
-            135deg,
-            rgba(255,136,0,0.14),
-            rgba(154,57,255,0.14)
-        );
-
-    transition: 0.2s ease;
-}
-
-.admin-home-button:hover {
-
-    transform: translateY(-2px);
-
-    filter: brightness(1.12);
-}
-
-/* =========================================================
-   ADMIN GRID
-========================================================= */
-
-.admin-grid {
-
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 16px;
-}
-
-/* =========================================================
-   ADMIN CARD
-========================================================= */
-
-.admin-card {
-
-    position: relative;
-
-    overflow: hidden;
-
-    border-radius: 18px;
-
-    border: 1px solid var(--line);
-
-    background:
-        linear-gradient(
-            180deg,
-            rgba(9,21,37,0.94),
-            rgba(5,11,20,0.94)
-        );
 
     padding: 18px;
 
-    box-shadow:
-        0 18px 65px rgba(0,0,0,0.34);
 }
 
-.admin-card::before {
+/* ===================================================== */
+/* TOPBAR */
+/* ===================================================== */
 
-    content: "";
-
-    position: absolute;
-
-    inset: -1px auto -1px -1px;
-
-    width: 6px;
-
-    border-radius: 18px 0 0 18px;
-}
-
-.admin-card.geniale::before {
-
-    background:
-        linear-gradient(
-            180deg,
-            #fff000,
-            var(--geniale),
-            #ff3d00
-        );
-}
-
-.admin-card.paniz::before {
-
-    background:
-        linear-gradient(
-            180deg,
-            #ff4cff,
-            var(--paniz),
-            #5925c7
-        );
-}
-
-.admin-card.financeiro::before {
-
-    background:
-        linear-gradient(
-            180deg,
-            var(--financeiro-1),
-            var(--financeiro-2)
-        );
-}
-
-/* =========================================================
-   ADMIN TOP
-========================================================= */
-
-.admin-card-top {
+.topbar {
 
     display: flex;
-
-    align-items: center;
-
     justify-content: space-between;
-
-    margin-bottom: 16px;
-}
-
-.admin-card-brand {
-
-    display: flex;
-
     align-items: center;
 
-    gap: 18px;
-}
-
-.admin-card-brand img {
-
-    width: 140px;
-
-    height: 74px;
-
-    object-fit: contain;
-
-    background: #fff;
-
-    border-radius: 12px;
-
-    padding: 8px;
-}
-
-.financeiro-brand {
-
-    gap: 22px;
-}
-
-/* =========================================================
-   FINANCEIRO ADMIN LOGOS
-========================================================= */
-
-.financeiro-admin-logos {
-
-    width: 140px;
-
-    height: 74px;
-
-    border-radius: 12px;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    gap: 10px;
-
-    background:
-        radial-gradient(
-            circle at 25% 20%,
-            rgba(255,136,0,0.28),
-            transparent 40%
-        ),
-
-        linear-gradient(
-            135deg,
-            rgba(255,136,0,0.12),
-            rgba(154,57,255,0.12)
-        ),
-
-        rgba(255,255,255,0.04);
+    padding: 18px 22px;
 
     border:
         1px solid rgba(255,255,255,0.08);
+
+    border-radius: 18px;
+
+    background:
+        rgba(7,12,22,0.85);
+
+    backdrop-filter: blur(12px);
+
+    box-shadow:
+        0 0 30px rgba(0,0,0,0.4);
+
 }
 
-.financeiro-admin-logos img {
+.top-logo {
 
-    width: 46px;
-
-    height: 46px;
-
+    height: 62px;
     object-fit: contain;
 
-    background: none;
-
-    padding: 0;
 }
 
-.financeiro-admin-plus {
-
-    font-size: 22px;
-
-    font-weight: 900;
-
-    color: #fff;
-}
-
-/* =========================================================
-   ADMIN TEXT
-========================================================= */
-
-.admin-card-brand h2 {
-
-    font-size: 28px;
-
-    font-weight: 950;
-
-    margin-bottom: 4px;
-}
-
-.geniale .admin-card-brand h2 {
-
-    color: var(--geniale);
-}
-
-.paniz .admin-card-brand h2 {
-
-    color: var(--paniz);
-}
-
-.financeiro .admin-card-brand h2 {
-
-    background:
-        linear-gradient(
-            90deg,
-            var(--financeiro-1),
-            var(--financeiro-2)
-        );
-
-    -webkit-background-clip: text;
-
-    color: transparent;
-}
-
-.admin-card-brand span {
-
-    color: var(--muted);
-
-    font-size: 13px;
-}
-
-/* =========================================================
-   STATUS ADMIN
-========================================================= */
-
-.admin-status {
-
-    height: 42px;
-
-    padding: 0 18px;
-
-    border-radius: 10px;
+.topbar-right {
 
     display: flex;
-
     align-items: center;
+    gap: 18px;
 
-    justify-content: center;
-
-    font-size: 13px;
-
-    font-weight: 900;
 }
 
-.admin-status.ok {
+.clock-box {
 
-    background:
-        rgba(32,224,131,0.10);
+    display: flex;
+    align-items: center;
+    gap: 12px;
 
-    border:
-        1px solid rgba(32,224,131,0.28);
-
-    color: var(--green);
-}
-
-/* =========================================================
-   ADMIN MÉTRICAS
-========================================================= */
-
-.admin-metrics {
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(5, 1fr);
-
-    gap: 14px;
-
-    margin-bottom: 18px;
-}
-
-.admin-metric {
-
-    min-height: 88px;
+    padding: 12px 18px;
 
     border-radius: 14px;
 
-    border: 1px solid rgba(255,255,255,0.06);
+    border:
+        1px solid rgba(255,255,255,0.08);
 
     background:
         rgba(255,255,255,0.03);
 
-    padding: 14px;
 }
 
-.admin-metric span {
+.clock-icon {
+
+    width: 40px;
+    height: 40px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    color: #ff9100;
+
+    border:
+        2px solid #ff9100;
+
+    font-size: 18px;
+
+}
+
+.clock-box strong {
 
     display: block;
 
-    color: var(--muted);
+    font-size: 24px;
+    font-weight: 700;
 
-    font-size: 12px;
-
-    margin-bottom: 10px;
 }
 
-.admin-metric strong {
+.clock-box span {
 
-    font-size: 28px;
+    color: #c7d3e0;
+    font-size: 13px;
 
-    font-weight: 950;
 }
 
-.geniale .admin-metric strong {
+.online-status {
 
-    color: var(--geniale);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    color: #4dff73;
+
+    font-size: 14px;
+    font-weight: 700;
+
 }
 
-.paniz .admin-metric strong {
+.online-dot {
 
-    color: var(--paniz);
+    width: 10px;
+    height: 10px;
+
+    border-radius: 50%;
+
+    background: #43ff6f;
+
+    box-shadow:
+        0 0 12px #43ff6f;
+
 }
 
-.financeiro .admin-metric strong {
+/* ===================================================== */
+/* TITLE */
+/* ===================================================== */
+
+.hero-title {
+
+    margin-top: 28px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+
+}
+
+.hero-line {
+
+    width: 90px;
+    height: 2px;
 
     background:
         linear-gradient(
             90deg,
-            var(--financeiro-1),
-            var(--financeiro-2)
+            transparent,
+            #ff9100,
+            transparent
         );
 
-    -webkit-background-clip: text;
-
-    color: transparent;
 }
 
-/* =========================================================
-   LOGS
-========================================================= */
+.hero-title h1 {
 
-.admin-log-box {
+    font-size: 32px;
+    font-weight: 800;
 
-    border-radius: 14px;
+    letter-spacing: 1px;
 
-    border: 1px solid rgba(255,255,255,0.06);
-
-    background:
-        rgba(0,0,0,0.30);
-
-    overflow: hidden;
 }
 
-.admin-log-title {
+.hero-subtitle {
 
-    height: 48px;
+    margin-top: 12px;
 
-    padding: 0 18px;
+    text-align: center;
+
+    color: #c0cad6;
+
+    font-size: 14px;
+
+}
+
+/* ===================================================== */
+/* CARDS */
+/* ===================================================== */
+
+.reports-grid {
+
+    margin-top: 30px;
 
     display: flex;
+    flex-direction: column;
+    gap: 18px;
+
+}
+
+.report-card {
+
+    display: grid;
+
+    grid-template-columns:
+        150px
+        1fr
+        260px
+        210px;
 
     align-items: center;
 
-    font-size: 13px;
+    gap: 20px;
 
-    font-weight: 900;
+    padding: 20px 24px;
 
-    border-bottom:
-        1px solid rgba(255,255,255,0.06);
+    border-radius: 18px;
 
-    color: #dfe4ee;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(6,14,24,0.95),
+            rgba(4,8,16,0.95)
+        );
+
+    border:
+        1px solid rgba(255,255,255,0.07);
+
+    transition:
+        0.25s;
+
+    position: relative;
+
+    overflow: hidden;
+
 }
 
-.admin-log-box pre {
+.report-card:hover {
 
-    max-height: 340px;
+    transform: translateY(-2px);
+
+}
+
+.report-card.geniale {
+
+    box-shadow:
+        inset 3px 0 0 #ff9100;
+
+}
+
+.report-card.paniz {
+
+    box-shadow:
+        inset 3px 0 0 #8e39ff;
+
+}
+
+.report-card.financeiro {
+
+    box-shadow:
+        inset 3px 0 0 #ff9100,
+        inset -3px 0 0 #8e39ff;
+
+}
+
+/* ===================================================== */
+/* LEFT */
+/* ===================================================== */
+
+.report-left {
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+}
+
+.report-logo {
+
+    width: 120px;
+    object-fit: contain;
+
+}
+
+/* ===================================================== */
+/* FINANCEIRO */
+/* ===================================================== */
+
+.financeiro-stack {
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+}
+
+.financeiro-stack img {
+
+    width: 100px;
+    object-fit: contain;
+
+}
+
+.financeiro-plus {
+
+    font-size: 28px;
+    font-weight: 700;
+
+    color: #ffffff;
+
+}
+
+/* ===================================================== */
+/* CENTER */
+/* ===================================================== */
+
+.report-center h2 {
+
+    font-size: 34px;
+    font-weight: 800;
+
+}
+
+.report-center span {
+
+    display: block;
+
+    margin-top: 6px;
+
+    color: #d7dce2;
+
+    font-size: 16px;
+
+}
+
+.geniale h2 {
+
+    color: #ff9100;
+
+}
+
+.paniz h2 {
+
+    color: #9d4cff;
+
+}
+
+.financeiro h2 {
+
+    background:
+        linear-gradient(
+            90deg,
+            #ff9100,
+            #9d4cff
+        );
+
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+}
+
+/* ===================================================== */
+/* STATUS */
+/* ===================================================== */
+
+.report-status {
+
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+}
+
+.status-pill {
+
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+
+    width: fit-content;
+
+    padding: 8px 14px;
+
+    border-radius: 999px;
+
+    font-size: 14px;
+    font-weight: 700;
+
+}
+
+.status-pill.ok {
+
+    background:
+        rgba(41,255,99,0.12);
+
+    color: #49ff73;
+
+}
+
+.status-dot {
+
+    width: 10px;
+    height: 10px;
+
+    border-radius: 50%;
+
+    background: #49ff73;
+
+}
+
+.report-status small {
+
+    color: #98a8ba;
+
+    font-size: 13px;
+
+}
+
+.report-status span {
+
+    font-size: 15px;
+    font-weight: 600;
+
+}
+
+/* ===================================================== */
+/* ACTIONS */
+/* ===================================================== */
+
+.report-actions {
+
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+}
+
+.action-btn {
+
+    width: 100%;
+
+    padding: 14px 16px;
+
+    border-radius: 12px;
+
+    border: none;
+
+    text-decoration: none;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 15px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        0.2s;
+
+}
+
+.update-btn {
+
+    background:
+        linear-gradient(
+            90deg,
+            #ff9100,
+            #ffae00
+        );
+
+    color: #ffffff;
+
+}
+
+.download-btn {
+
+    background:
+        rgba(255,255,255,0.03);
+
+    border:
+        1px solid rgba(255,255,255,0.08);
+
+    color: #ffffff;
+
+}
+
+.action-btn:hover {
+
+    transform: translateY(-2px);
+
+}
+
+/* ===================================================== */
+/* AUTO UPDATE */
+/* ===================================================== */
+
+.auto-update-box {
+
+    margin-top: 28px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 22px 26px;
+
+    border-radius: 18px;
+
+    border:
+        1px solid rgba(255,255,255,0.07);
+
+    background:
+        rgba(255,255,255,0.02);
+
+}
+
+.auto-left {
+
+    display: flex;
+    align-items: center;
+    gap: 18px;
+
+}
+
+.auto-icon {
+
+    font-size: 42px;
+    color: #ff9100;
+
+}
+
+.auto-left strong {
+
+    display: block;
+
+    font-size: 18px;
+
+}
+
+.auto-left span {
+
+    color: #aab7c6;
+
+    font-size: 14px;
+
+}
+
+.auto-right span {
+
+    color: #b3bfcc;
+
+}
+
+.auto-right strong {
+
+    margin-left: 10px;
+
+    color: #ff9100;
+
+    font-size: 42px;
+
+}
+
+/* ===================================================== */
+/* FOOTER */
+/* ===================================================== */
+
+.footer-home {
+
+    margin-top: 26px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 22px 26px;
+
+    border-radius: 18px;
+
+    border:
+        1px solid rgba(255,255,255,0.06);
+
+    background:
+        rgba(255,255,255,0.02);
+
+}
+
+.footer-security {
+
+    display: flex;
+    align-items: center;
+    gap: 14px;
+
+}
+
+.shield-icon {
+
+    font-size: 24px;
+    color: #43ff6f;
+
+}
+
+.tech-button {
+
+    padding: 16px 28px;
+
+    border-radius: 12px;
+
+    text-decoration: none;
+
+    background:
+        linear-gradient(
+            90deg,
+            #ff9100,
+            #ffae00
+        );
+
+    color: #ffffff;
+
+    font-size: 15px;
+    font-weight: 800;
+
+}
+
+.footer-dev {
+
+    color: #aab6c5;
+
+}
+
+/* ===================================================== */
+/* ADMIN */
+/* ===================================================== */
+
+.admin-container {
+
+    width: 100%;
+    max-width: 1450px;
+
+    margin: 0 auto;
+
+    padding: 18px;
+
+}
+
+.admin-topbar {
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 20px 24px;
+
+    border-radius: 18px;
+
+    border:
+        1px solid rgba(255,255,255,0.06);
+
+    background:
+        rgba(7,12,22,0.88);
+
+}
+
+.admin-top-left {
+
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+}
+
+.grupo-logo {
+
+    height: 58px;
+    object-fit: contain;
+
+}
+
+.admin-top-left h1 {
+
+    font-size: 34px;
+    font-weight: 800;
+
+}
+
+.admin-top-right {
+
+    display: flex;
+    align-items: center;
+    gap: 18px;
+
+}
+
+.back-home-btn {
+
+    padding: 14px 22px;
+
+    border-radius: 12px;
+
+    border:
+        1px solid rgba(255,255,255,0.08);
+
+    background:
+        rgba(255,255,255,0.03);
+
+    color: #ffffff;
+
+    text-decoration: none;
+
+    font-size: 14px;
+    font-weight: 700;
+
+}
+
+.admin-clock {
+
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding: 12px 18px;
+
+    border-radius: 14px;
+
+    background:
+        rgba(255,255,255,0.03);
+
+}
+
+.admin-clock-icon {
+
+    width: 40px;
+    height: 40px;
+
+    border-radius: 50%;
+
+    border:
+        2px solid #9d4cff;
+
+    color: #9d4cff;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+}
+
+/* ===================================================== */
+/* NAV */
+/* ===================================================== */
+
+.admin-nav {
+
+    margin-top: 20px;
+
+    display: flex;
+    gap: 12px;
+
+    border-bottom:
+        1px solid rgba(255,255,255,0.08);
+
+}
+
+.nav-item {
+
+    padding: 16px 18px;
+
+    background: transparent;
+
+    border: none;
+
+    color: #c3ced9;
+
+    font-size: 14px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+}
+
+.nav-item.active {
+
+    color: #9d4cff;
+
+    border-bottom:
+        3px solid #9d4cff;
+
+}
+
+/* ===================================================== */
+/* METRICS */
+/* ===================================================== */
+
+.metrics-grid {
+
+    margin-top: 24px;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap: 18px;
+
+}
+
+.metric-card {
+
+    padding: 22px;
+
+    border-radius: 16px;
+
+    border:
+        1px solid rgba(255,255,255,0.05);
+
+    background:
+        rgba(255,255,255,0.02);
+
+}
+
+.metric-card span {
+
+    display: block;
+
+    color: #c4cfda;
+
+    font-size: 13px;
+
+}
+
+.metric-card strong {
+
+    display: block;
+
+    margin-top: 10px;
+
+    font-size: 42px;
+    font-weight: 800;
+
+}
+
+.metric-card small {
+
+    display: block;
+
+    margin-top: 8px;
+
+    color: #97a6b7;
+
+}
+
+.metric-card.green strong {
+
+    color: #4dff73;
+
+}
+
+.metric-card.blue strong {
+
+    color: #2ca0ff;
+
+}
+
+.metric-card.orange strong {
+
+    color: #ff9100;
+
+}
+
+.metric-card.purple strong {
+
+    color: #9d4cff;
+
+}
+
+.metric-card.cyan strong {
+
+    color: #00cfff;
+
+}
+
+/* ===================================================== */
+/* BOTTOM */
+/* ===================================================== */
+
+.admin-bottom-grid {
+
+    margin-top: 24px;
+
+    display: grid;
+
+    grid-template-columns:
+        2fr 1fr;
+
+    gap: 20px;
+
+}
+
+.logs-panel,
+.history-panel {
+
+    padding: 22px;
+
+    border-radius: 18px;
+
+    border:
+        1px solid rgba(255,255,255,0.06);
+
+    background:
+        rgba(255,255,255,0.02);
+
+}
+
+.panel-header {
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    margin-bottom: 18px;
+
+}
+
+.panel-header h2 {
+
+    font-size: 22px;
+    font-weight: 700;
+
+}
+
+.clear-btn {
+
+    padding: 12px 16px;
+
+    border-radius: 10px;
+
+    border: none;
+
+    background:
+        rgba(255,0,0,0.14);
+
+    color: #ff4343;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+}
+
+#system-log {
+
+    min-height: 420px;
 
     overflow: auto;
 
     padding: 18px;
 
-    color: #d5deea;
+    border-radius: 14px;
 
-    font-size: 12px;
+    background:
+        rgba(0,0,0,0.35);
 
-    line-height: 1.6;
+    color: #49ff73;
 
-    white-space: pre-wrap;
+    font-size: 14px;
+    line-height: 1.7;
+
 }
 
-/* =========================================================
-   RESPONSIVO
-========================================================= */
+/* ===================================================== */
+/* HISTORY */
+/* ===================================================== */
 
-@media (max-width: 1500px) {
+.history-list {
 
-    .card-top {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
 
-        grid-template-columns:
-            1.3fr
-            0.75fr
-            0.9fr
-            1fr;
-
-        gap: 16px;
-    }
-
-    .logo-box {
-
-        width: 145px;
-
-        flex-basis: 145px;
-    }
-
-    .btn {
-
-        min-width: 122px;
-    }
-
-    .admin-metrics {
-
-        grid-template-columns:
-            repeat(3, 1fr);
-    }
 }
 
-@media (max-width: 1180px) {
+.history-item {
 
-    .header {
+    display: grid;
 
-        height: auto;
+    grid-template-columns:
+        12px
+        1fr
+        auto
+        auto;
 
-        padding: 16px 0;
+    align-items: center;
 
-        flex-direction: column;
+    gap: 12px;
 
-        align-items: flex-start;
+}
 
-        gap: 14px;
-    }
+.history-dot {
 
-    .system-clock {
+    width: 10px;
+    height: 10px;
 
-        width: 100%;
-    }
+    border-radius: 50%;
 
-    .card-top {
+    background: #49ff73;
+
+}
+
+.history-item strong {
+
+    color: #49ff73;
+
+}
+
+.history-link {
+
+    margin-top: 28px;
+
+    display: inline-block;
+
+    color: #9d4cff;
+
+    text-decoration: none;
+
+    font-weight: 700;
+
+}
+
+/* ===================================================== */
+/* FOOTER ADMIN */
+/* ===================================================== */
+
+.admin-footer {
+
+    margin-top: 24px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 20px 24px;
+
+    border-radius: 18px;
+
+    background:
+        rgba(255,255,255,0.02);
+
+    border:
+        1px solid rgba(255,255,255,0.06);
+
+}
+
+.admin-footer-left {
+
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+}
+
+.admin-footer-right strong {
+
+    color: #ffffff;
+
+}
+
+/* ===================================================== */
+/* RESPONSIVE */
+/* ===================================================== */
+
+@media (max-width: 1200px) {
+
+    .report-card {
 
         grid-template-columns: 1fr;
+
     }
 
-    .info-column {
-
-        border-left: 0;
-
-        padding-left: 0;
-
-        min-height: auto;
-    }
-
-    .actions {
-
-        flex-wrap: wrap;
-    }
-
-    .btn {
-
-        flex: 1;
-    }
-
-    .footer-bar {
-
-        height: auto;
-
-        padding: 16px;
-
-        gap: 14px;
-
-        flex-direction: column;
-
-        align-items: flex-start;
-    }
-
-    .admin-header {
-
-        flex-direction: column;
-
-        align-items: flex-start;
-
-        gap: 14px;
-    }
-
-    .admin-metrics {
+    .metrics-grid {
 
         grid-template-columns:
             repeat(2, 1fr);
-    }
-}
 
-@media (max-width: 780px) {
-
-    .page,
-    .admin-page {
-
-        width: 94vw;
     }
 
-    .brand {
-
-        flex-direction: column;
-
-        align-items: flex-start;
-
-        gap: 12px;
-    }
-
-    .brand-divider {
-
-        display: none;
-    }
-
-    .brand-logo {
-
-        width: 180px;
-    }
-
-    .brand h1 {
-
-        font-size: 22px;
-    }
-
-    .dashboard-title h2 {
-
-        font-size: 22px;
-    }
-
-    .title-line,
-    .title-icon {
-
-        display: none;
-    }
-
-    .identity {
-
-        flex-direction: column;
-
-        align-items: flex-start;
-    }
-
-    .logo-box {
-
-        width: 100%;
-
-        flex-basis: auto;
-    }
-
-    .identity-text h3 {
-
-        font-size: 24px;
-    }
-
-    .admin-card-top {
-
-        flex-direction: column;
-
-        align-items: flex-start;
-
-        gap: 14px;
-    }
-
-    .admin-metrics {
+    .admin-bottom-grid {
 
         grid-template-columns: 1fr;
+
     }
+
+}
+
+@media (max-width: 768px) {
+
+    .topbar,
+    .admin-topbar,
+    .footer-home,
+    .auto-update-box,
+    .admin-footer {
+
+        flex-direction: column;
+        gap: 20px;
+
+    }
+
+    .metrics-grid {
+
+        grid-template-columns: 1fr;
+
+    }
+
 }
