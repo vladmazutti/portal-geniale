@@ -11,7 +11,7 @@
     >
 
     <title>
-        Portal de Planilhas
+        Central de Relatórios
     </title>
 
     <link
@@ -23,405 +23,323 @@
 
 <body>
 
-    <main class="page">
+    <main class="home-container">
 
-        <header class="header">
+        <!-- ===================================================== -->
+        <!-- HEADER -->
+        <!-- ===================================================== -->
 
-            <div class="brand">
+        <header class="topbar">
+
+            <div class="topbar-left">
 
                 <img
                     src="{{ url_for('static', filename='logo.png') }}"
+                    class="top-logo"
                     alt="Geniale"
-                    class="brand-logo"
                 >
-
-                <div class="brand-divider"></div>
-
-                <div>
-
-                    <h1>
-                        PLANILHAS DE PAGAMENTO
-                    </h1>
-
-                    <p>
-                        Sistema de geração e download
-                    </p>
-
-                </div>
 
             </div>
 
-            <div class="system-clock">
+            <div class="topbar-right">
 
-                <div class="clock-icon">
-                    ◷
+                <div class="clock-box">
+
+                    <div class="clock-icon">
+                        ◷
+                    </div>
+
+                    <div>
+
+                        <strong id="clock-time">
+                            08:01:24
+                        </strong>
+
+                        <span id="clock-date">
+                            13/05/2025
+                        </span>
+
+                    </div>
+
                 </div>
 
-                <div>
+                <div class="online-status">
 
-                    <span>
-                        Última atualização do sistema
-                    </span>
+                    <div class="online-dot"></div>
 
-                    <strong id="clock-time">
-                        {{ agora }}
-                    </strong>
+                    ONLINE
 
                 </div>
-
-                <div class="online-dot"></div>
 
             </div>
 
         </header>
 
-        <section class="dashboard">
+        <!-- ===================================================== -->
+        <!-- TITLE -->
+        <!-- ===================================================== -->
 
-            <div class="dashboard-title">
+        <section class="hero-title">
 
-                <div class="title-line"></div>
+            <div class="hero-line"></div>
 
-                <div class="title-icon">
-                    ▥
-                </div>
+            <h1>
+                CENTRAL DE RELATÓRIOS
+            </h1>
 
-                <h2>
-                    GERAÇÃO DE PLANILHAS
-                </h2>
-
-                <div class="title-line"></div>
-
-                <p>
-                    Selecione uma planilha abaixo para atualizar ou realizar download
-                </p>
-
-            </div>
-
-            <section class="cards">
-
-                {% for relatorio in relatorios %}
-
-                <article
-                    class="card {{ relatorio.classe }}"
-                    id="card-{{ relatorio.tipo }}"
-                >
-
-                    <div class="card-top">
-
-                        <div class="identity">
-
-                            {% if relatorio.tipo == "financeiro" %}
-
-                            <div class="logo-box financeiro-logo">
-
-                                <div class="financeiro-logos">
-
-                                    <img
-                                        src="{{ url_for('static', filename='logo.png') }}"
-                                        alt="Geniale"
-                                        class="financeiro-logo-geniale"
-                                    >
-
-                                    <div class="financeiro-plus">
-                                        +
-                                    </div>
-
-                                    <img
-                                        src="{{ url_for('static', filename='logo_paniz.png') }}"
-                                        alt="Paniz"
-                                        class="financeiro-logo-paniz"
-                                    >
-
-                                </div>
-
-                            </div>
-
-                            {% else %}
-
-                            <div class="logo-box">
-
-                                <img
-                                    src="{{ url_for('static', filename=relatorio.logo) }}"
-                                    alt="{{ relatorio.nome }}"
-                                >
-
-                            </div>
-
-                            {% endif %}
-
-                            <div class="identity-text">
-
-                                <h3>
-                                    {{ relatorio.nome }}
-                                </h3>
-
-                                <strong>
-                                    {{ relatorio.titulo }}
-                                </strong>
-
-                                <p>
-                                    {{ relatorio.descricao }}
-                                </p>
-
-                            </div>
-
-                        </div>
-
-                        <div class="info-column">
-
-                            <span>
-                                STATUS
-                            </span>
-
-                            <div
-                                class="status-box {{ relatorio.status.cor }}"
-                                id="status-box-{{ relatorio.tipo }}"
-                            >
-
-                                <div class="check">
-                                    ✓
-                                </div>
-
-                                <div>
-
-                                    <strong id="status-main-{{ relatorio.tipo }}">
-                                        {% if relatorio.status.cor == "atualizando" %}
-                                            PROCESSANDO
-                                        {% elif relatorio.status.cor == "erro" %}
-                                            ERRO
-                                        {% elif relatorio.status.cor == "pendente" %}
-                                            PENDENTE
-                                        {% else %}
-                                            OK
-                                        {% endif %}
-                                    </strong>
-
-                                    <small id="status-text-{{ relatorio.tipo }}">
-                                        {{ relatorio.status.texto }}
-                                    </small>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                        <div class="info-column">
-
-                            <span>
-                                ÚLTIMA ATUALIZAÇÃO
-                            </span>
-
-                            <div class="date-info">
-
-                                <div class="date-icon">
-                                    ▣
-                                </div>
-
-                                <strong id="update-date-{{ relatorio.tipo }}">
-                                    {{ relatorio.status.ultima }}
-                                </strong>
-
-                            </div>
-
-                        </div>
-
-                        <div class="info-column actions-column">
-
-                            <span>
-                                AÇÕES
-                            </span>
-
-                            <div class="actions">
-
-                                <button
-                                    type="button"
-                                    class="btn btn-update"
-                                    id="update-btn-{{ relatorio.tipo }}"
-                                    onclick="iniciarAtualizacao('{{ relatorio.tipo }}')"
-                                    {% if relatorio.status.cor == 'atualizando' %}disabled{% endif %}
-                                >
-
-                                    <b>
-                                        {% if relatorio.status.cor == 'atualizando' %}
-                                            ⏳
-                                        {% else %}
-                                            ↻
-                                        {% endif %}
-                                    </b>
-
-                                    {% if relatorio.status.cor == 'atualizando' %}
-                                        ATUALIZANDO...
-                                    {% else %}
-                                        ATUALIZAR
-                                    {% endif %}
-
-                                </button>
-
-                                {% if relatorio.restrito %}
-
-                                <a
-                                    href="/acessar/{{ relatorio.tipo }}"
-                                    class="btn btn-download"
-                                >
-
-                                    <b>
-                                        🔒
-                                    </b>
-
-                                    ACESSAR
-
-                                </a>
-
-                                {% else %}
-
-                                <a
-                                    href="/baixar/{{ relatorio.tipo }}"
-                                    class="btn btn-download"
-                                >
-
-                                    <b>
-                                        ↓
-                                    </b>
-
-                                    BAIXAR
-
-                                </a>
-
-                                {% endif %}
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </article>
-
-                {% endfor %}
-
-            </section>
-
-            <section class="footer-bar">
-
-                <div class="footer-left">
-
-                    <span>
-                        ⚙
-                    </span>
-
-                    <strong>
-                        Atualizações automáticas configuradas
-                    </strong>
-
-                </div>
-
-                <a
-                    href="/static/admin.html"
-                    class="admin-button"
-                >
-
-                    Painel Técnico
-
-                </a>
-
-            </section>
+            <div class="hero-line"></div>
 
         </section>
 
+        <p class="hero-subtitle">
+            Selecione o relatório que deseja visualizar ou baixar
+        </p>
+
+        <!-- ===================================================== -->
+        <!-- CARDS -->
+        <!-- ===================================================== -->
+
+        <section class="reports-grid">
+
+            {% for relatorio in relatorios %}
+
+            <article class="report-card {{ relatorio.classe }}">
+
+                <!-- LEFT -->
+
+                <div class="report-left">
+
+                    {% if relatorio.tipo == "financeiro" %}
+
+                    <div class="financeiro-stack">
+
+                        <img
+                            src="{{ url_for('static', filename='logo.png') }}"
+                            alt="Geniale"
+                        >
+
+                        <div class="financeiro-plus">
+                            +
+                        </div>
+
+                        <img
+                            src="{{ url_for('static', filename='logo_paniz.png') }}"
+                            alt="Paniz"
+                        >
+
+                    </div>
+
+                    {% else %}
+
+                    <img
+                        src="{{ url_for('static', filename=relatorio.logo) }}"
+                        class="report-logo"
+                        alt="{{ relatorio.nome }}"
+                    >
+
+                    {% endif %}
+
+                </div>
+
+                <!-- CENTER -->
+
+                <div class="report-center">
+
+                    <h2>
+                        {{ relatorio.nome }}
+                    </h2>
+
+                    <span>
+                        {{ relatorio.titulo }}
+                    </span>
+
+                </div>
+
+                <!-- STATUS -->
+
+                <div class="report-status">
+
+                    <div class="status-pill ok">
+
+                        <div class="status-dot"></div>
+
+                        <strong id="status-main-{{ relatorio.tipo }}">
+                            {% if relatorio.status.cor == "atualizando" %}
+                                ATUALIZANDO
+                            {% elif relatorio.status.cor == "erro" %}
+                                ERRO
+                            {% else %}
+                                ATUALIZADO
+                            {% endif %}
+                        </strong>
+
+                    </div>
+
+                    <small>
+                        Última atualização
+                    </small>
+
+                    <span id="status-date-{{ relatorio.tipo }}">
+                        {{ relatorio.status.ultima }}
+                    </span>
+
+                </div>
+
+                <!-- ACTIONS -->
+
+                <div class="report-actions">
+
+                    <button
+                        type="button"
+                        class="action-btn update-btn"
+                        id="update-btn-{{ relatorio.tipo }}"
+                        onclick="iniciarAtualizacao('{{ relatorio.tipo }}')"
+                    >
+
+                        ↻ Atualizar
+
+                    </button>
+
+                    {% if relatorio.restrito %}
+
+                    <a
+                        href="/acessar/{{ relatorio.tipo }}"
+                        class="action-btn download-btn"
+                    >
+
+                        🔒 Acessar
+
+                    </a>
+
+                    {% else %}
+
+                    <a
+                        href="/baixar/{{ relatorio.tipo }}"
+                        class="action-btn download-btn"
+                    >
+
+                        ↓ Baixar Excel
+
+                    </a>
+
+                    {% endif %}
+
+                </div>
+
+            </article>
+
+            {% endfor %}
+
+        </section>
+
+        <!-- ===================================================== -->
+        <!-- AUTO UPDATE -->
+        <!-- ===================================================== -->
+
+        <section class="auto-update-box">
+
+            <div class="auto-left">
+
+                <div class="auto-icon">
+                    ↻
+                </div>
+
+                <div>
+
+                    <strong>
+                        ATUALIZAÇÃO AUTOMÁTICA
+                    </strong>
+
+                    <span>
+                        A cada 30 minutos
+                    </span>
+
+                </div>
+
+            </div>
+
+            <div class="auto-right">
+
+                <span>
+                    Próxima atualização em:
+                </span>
+
+                <strong id="countdown">
+                    00:28:36
+                </strong>
+
+            </div>
+
+        </section>
+
+        <!-- ===================================================== -->
+        <!-- FOOTER -->
+        <!-- ===================================================== -->
+
+        <footer class="footer-home">
+
+            <div class="footer-security">
+
+                <div class="shield-icon">
+                    🛡
+                </div>
+
+                <span>
+                    Sistema seguro e monitorado
+                </span>
+
+            </div>
+
+            <a
+                href="/static/admin.html"
+                class="tech-button"
+            >
+
+                ◫ PAINEL TÉCNICO
+
+            </a>
+
+            <div class="footer-dev">
+
+                Desenvolvido por Geniale Soluções
+
+            </div>
+
+        </footer>
+
     </main>
+
+    <!-- ===================================================== -->
+    <!-- SCRIPT -->
+    <!-- ===================================================== -->
 
     <script>
 
         async function iniciarAtualizacao(tipo) {
 
-            const botao = document.getElementById(`update-btn-${tipo}`);
-            const statusBox = document.getElementById(`status-box-${tipo}`);
-            const statusMain = document.getElementById(`status-main-${tipo}`);
-            const statusText = document.getElementById(`status-text-${tipo}`);
-
-            if (!botao || !statusBox || !statusMain || !statusText) {
-                return;
-            }
+            const botao =
+                document.getElementById(`update-btn-${tipo}`);
 
             botao.disabled = true;
-            botao.innerHTML = "<b>⏳</b> ATUALIZANDO...";
-
-            statusBox.className = "status-box atualizando";
-            statusMain.innerText = "PROCESSANDO";
-            statusText.innerText = "Atualizando...";
+            botao.innerHTML = "⏳ Atualizando...";
 
             try {
 
                 await fetch(`/api/atualizar/${tipo}`);
-                await atualizarStatus();
+
+                setTimeout(() => {
+
+                    botao.disabled = false;
+                    botao.innerHTML = "↻ Atualizar";
+
+                }, 5000);
 
             } catch (erro) {
 
                 console.log(erro);
 
-            }
-
-        }
-
-        function definirStatusVisual(tipo, status) {
-
-            const statusText = document.getElementById(`status-text-${tipo}`);
-            const statusMain = document.getElementById(`status-main-${tipo}`);
-            const statusBox = document.getElementById(`status-box-${tipo}`);
-            const updateDate = document.getElementById(`update-date-${tipo}`);
-            const updateBtn = document.getElementById(`update-btn-${tipo}`);
-
-            if (!statusText || !statusMain || !statusBox || !updateDate || !updateBtn) {
-                return;
-            }
-
-            statusText.innerText = status.texto;
-            updateDate.innerText = status.ultima;
-            statusBox.className = `status-box ${status.cor}`;
-
-            if (status.cor === "atualizando") {
-
-                statusMain.innerText = "PROCESSANDO";
-                updateBtn.disabled = true;
-                updateBtn.innerHTML = "<b>⏳</b> ATUALIZANDO...";
-
-            } else if (status.cor === "erro") {
-
-                statusMain.innerText = "ERRO";
-                updateBtn.disabled = false;
-                updateBtn.innerHTML = "<b>↻</b> ATUALIZAR";
-
-            } else if (status.cor === "pendente") {
-
-                statusMain.innerText = "PENDENTE";
-                updateBtn.disabled = false;
-                updateBtn.innerHTML = "<b>↻</b> ATUALIZAR";
-
-            } else {
-
-                statusMain.innerText = "OK";
-                updateBtn.disabled = false;
-                updateBtn.innerHTML = "<b>↻</b> ATUALIZAR";
-
-            }
-
-        }
-
-        async function atualizarStatus() {
-
-            try {
-
-                const resposta = await fetch("/api/status");
-                const relatorios = await resposta.json();
-
-                relatorios.forEach(relatorio => {
-                    definirStatusVisual(relatorio.tipo, relatorio.status);
-                });
-
-            } catch (erro) {
-
-                console.log(erro);
+                botao.disabled = false;
+                botao.innerHTML = "↻ Atualizar";
 
             }
 
@@ -429,34 +347,35 @@
 
         function atualizarRelogio() {
 
-            const elemento = document.getElementById("clock-time");
-
-            if (!elemento) {
-                return;
-            }
-
             const agora = new Date();
 
-            elemento.innerText = agora.toLocaleString(
-                "pt-BR",
-                {
-                    timeZone: "America/Sao_Paulo",
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    second: "2-digit"
-                }
-            ).replace(",", "");
+            const hora =
+                agora.toLocaleTimeString(
+                    "pt-BR",
+                    {
+                        hour12: false
+                    }
+                );
+
+            const data =
+                agora.toLocaleDateString(
+                    "pt-BR"
+                );
+
+            document.getElementById("clock-time")
+                .innerText = hora;
+
+            document.getElementById("clock-date")
+                .innerText = data;
 
         }
 
-        atualizarStatus();
         atualizarRelogio();
 
-        setInterval(atualizarStatus, 5000);
-        setInterval(atualizarRelogio, 1000);
+        setInterval(
+            atualizarRelogio,
+            1000
+        );
 
     </script>
 
