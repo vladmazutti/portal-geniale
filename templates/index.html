@@ -1,207 +1,110 @@
+<!-- templates/index.html -->
 <!DOCTYPE html>
 <html lang="pt-br">
 
 <head>
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Planilhas de Pagamento</title>
-
-    <link
-        rel="stylesheet"
-        href="{{ url_for('static', filename='style.css') }}"
-    >
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
 <body>
-
-    <div class="app-background"></div>
 
     <main class="page">
 
         <header class="header">
 
-            <div class="header-brand">
+            <div class="brand">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="Geniale" class="brand-logo">
 
-                <div class="header-logo-wrap">
-                    <img
-                        src="{{ url_for('static', filename='logo.png') }}"
-                        alt="Geniale"
-                        class="header-logo"
-                    >
-                </div>
-
-                <div class="header-divider"></div>
-
-                <div class="header-title-area">
-
-                    <h1>
-                        PLANILHAS DE PAGAMENTO
-                    </h1>
-
-                    <p>
-                        Sistema de Geração e Download
-                    </p>
-
-                </div>
-
-            </div>
-
-            <div class="system-update-card">
-
-                <div class="system-update-icon">
-                    ◷
-                </div>
+                <div class="brand-divider"></div>
 
                 <div>
-
-                    <span>
-                        Última atualização do sistema
-                    </span>
-
-                    <strong id="clock-time">
-                        {{ agora }}
-                    </strong>
-
+                    <h1>PLANILHAS DE PAGAMENTO</h1>
+                    <p>Sistema de Geração e Download</p>
                 </div>
+            </div>
 
+            <div class="system-clock">
+                <div class="clock-icon">◷</div>
+                <div>
+                    <span>Última atualização do sistema</span>
+                    <strong id="clock-time">{{ agora }}</strong>
+                </div>
+                <div class="online-dot"></div>
             </div>
 
         </header>
 
         <section class="dashboard">
 
-            <section class="dashboard-title">
-
+            <div class="dashboard-title">
                 <div class="title-line"></div>
-
-                <h2>
-                    GERAÇÃO DE PLANILHAS
-                </h2>
-
+                <div class="title-icon">▥</div>
+                <h2>GERAÇÃO DE PLANILHAS</h2>
                 <div class="title-line"></div>
+                <p>Selecione uma planilha abaixo para atualizar ou realizar download</p>
+            </div>
 
-                <p>
-                    Selecione uma planilha abaixo para atualizar ou realizar download
-                </p>
-
-            </section>
-
-            <section class="reports-list">
+            <section class="cards">
 
                 {% for relatorio in relatorios %}
 
-                <article
-                    class="report-card {{ relatorio.classe }}"
-                    id="card-{{ relatorio.tipo }}"
-                    data-tipo="{{ relatorio.tipo }}"
-                >
+                <article class="card {{ relatorio.classe }}" id="card-{{ relatorio.tipo }}">
 
-                    <div class="report-top">
+                    <div class="card-top">
 
-                        <div class="report-identity">
+                        <div class="identity">
 
-                            <div class="report-logo-box">
-
+                            <div class="logo-box">
                                 {% if relatorio.logo %}
-
-                                <img
-                                    src="{{ url_for('static', filename=relatorio.logo) }}"
-                                    alt="{{ relatorio.nome }}"
-                                >
-
+                                <img src="{{ url_for('static', filename=relatorio.logo) }}" alt="{{ relatorio.nome }}">
                                 {% else %}
-
-                                <div class="financeiro-shield">
-                                    🔒
-                                </div>
-
+                                <div class="financeiro-icon">🔒</div>
                                 {% endif %}
-
                             </div>
 
-                            <div class="report-text">
-
-                                <h3>
-                                    {{ relatorio.nome }}
-                                </h3>
-
-                                <strong>
-                                    {{ relatorio.titulo }}
-                                </strong>
-
-                                <p>
-                                    {{ relatorio.descricao }}
-                                </p>
-
+                            <div class="identity-text">
+                                <h3>{{ relatorio.nome }}</h3>
+                                <strong>{{ relatorio.titulo }}</strong>
+                                <p>{{ relatorio.descricao }}</p>
                             </div>
 
                         </div>
 
-                        <div class="report-column status-column">
-
-                            <span class="column-label">
-                                STATUS
-                            </span>
-
-                            <div
-                                class="status-badge {{ relatorio.status.cor }}"
-                                id="status-badge-{{ relatorio.tipo }}"
-                            >
-
-                                <span class="status-icon">
-                                    ✓
-                                </span>
-
-                                <strong id="status-text-{{ relatorio.tipo }}">
-                                    {{ relatorio.status.texto }}
-                                </strong>
-
+                        <div class="info-column">
+                            <span>STATUS</span>
+                            <div class="status-box {{ relatorio.status.cor }}" id="status-badge-{{ relatorio.tipo }}">
+                                <div class="check">✓</div>
+                                <div>
+                                    <strong id="status-main-{{ relatorio.tipo }}">OK</strong>
+                                    <small id="status-text-{{ relatorio.tipo }}">{{ relatorio.status.texto }}</small>
+                                </div>
                             </div>
-
                         </div>
 
-                        <div class="report-column update-column">
-
-                            <span class="column-label">
-                                ÚLTIMA ATUALIZAÇÃO
-                            </span>
-
-                            <div class="date-row">
-
-                                <span class="date-icon">
-                                    ▣
-                                </span>
-
-                                <strong id="update-date-{{ relatorio.tipo }}">
-                                    {{ relatorio.status.ultima }}
-                                </strong>
-
+                        <div class="info-column">
+                            <span>ÚLTIMA ATUALIZAÇÃO</span>
+                            <div class="date-info">
+                                <div class="date-icon">▣</div>
+                                <strong id="update-date-{{ relatorio.tipo }}">{{ relatorio.status.ultima }}</strong>
                             </div>
-
                         </div>
 
-                        <div class="report-column actions-column">
+                        <div class="info-column actions-column">
+                            <span>AÇÕES</span>
 
-                            <span class="column-label">
-                                AÇÕES
-                            </span>
-
-                            <div class="actions-row">
+                            <div class="actions">
 
                                 <button
                                     type="button"
-                                    class="action-btn update-btn"
+                                    class="btn btn-update"
                                     id="update-btn-{{ relatorio.tipo }}"
                                     onclick="iniciarAtualizacao('{{ relatorio.tipo }}')"
                                     {% if relatorio.status.cor == 'atualizando' %}disabled{% endif %}
                                 >
-                                    <span>↻</span>
-
+                                    <b>↻</b>
                                     {% if relatorio.status.cor == 'atualizando' %}
                                         ATUALIZANDO...
                                     {% else %}
@@ -211,200 +114,88 @@
 
                                 {% if relatorio.restrito %}
 
-                                <a
-                                    href="/acessar/{{ relatorio.tipo }}"
-                                    class="action-btn download-btn"
-                                    id="download-link-{{ relatorio.tipo }}"
-                                >
-                                    <span>🔒</span>
+                                <a href="/acessar/{{ relatorio.tipo }}" class="btn btn-download">
+                                    <b>🔒</b>
                                     ACESSAR
                                 </a>
 
                                 {% else %}
 
-                                <a
-                                    href="/baixar/{{ relatorio.tipo }}"
-                                    class="action-btn download-btn"
-                                    id="download-link-{{ relatorio.tipo }}"
-                                >
-                                    <span>↓</span>
+                                <a href="/baixar/{{ relatorio.tipo }}" class="btn btn-download">
+                                    <b>↓</b>
                                     BAIXAR
                                 </a>
 
                                 {% endif %}
 
                             </div>
-
                         </div>
 
                     </div>
 
-                    <div class="report-metrics">
+                    <div class="metrics-box">
 
                         <div class="metrics-header">
+                            <span>RESULTADO DA ÚLTIMA ATUALIZAÇÃO</span>
 
-                            <span>
-                                RESULTADO DA ÚLTIMA ATUALIZAÇÃO
-                            </span>
-
-                            <button
-                                type="button"
-                                class="history-link"
-                                onclick="toggleLog('{{ relatorio.tipo }}')"
-                            >
+                            <button type="button" onclick="toggleLog('{{ relatorio.tipo }}')">
                                 VER HISTÓRICO COMPLETO ›
                             </button>
-
                         </div>
 
-                        <div class="metrics-grid">
+                        <div class="metrics">
 
-                            <div class="metric-item">
-
-                                <div class="metric-icon success">
-                                    ✓
-                                </div>
-
+                            <div class="metric">
+                                <i>◷</i>
                                 <div>
-
-                                    <strong id="metric-status-{{ relatorio.tipo }}">
-                                        OK
-                                    </strong>
-
-                                    <span>
-                                        Status
-                                    </span>
-
+                                    <strong id="metric-duration-{{ relatorio.tipo }}">—</strong>
+                                    <span>Duração</span>
                                 </div>
-
                             </div>
 
-                            <div class="metric-item">
-
-                                <div class="metric-icon">
-                                    ◷
-                                </div>
-
+                            <div class="metric">
+                                <i>▤</i>
                                 <div>
-
-                                    <strong id="metric-duration-{{ relatorio.tipo }}">
-                                        —
-                                    </strong>
-
-                                    <span>
-                                        Duração
-                                    </span>
-
+                                    <strong id="metric-records-{{ relatorio.tipo }}">—</strong>
+                                    <span>Registros OMIE</span>
                                 </div>
-
                             </div>
 
-                            <div class="metric-item">
-
-                                <div class="metric-icon">
-                                    ▤
-                                </div>
-
+                            <div class="metric">
+                                <i>▤</i>
                                 <div>
-
-                                    <strong id="metric-records-{{ relatorio.tipo }}">
-                                        —
-                                    </strong>
-
-                                    <span>
-                                        Registros OMIE
-                                    </span>
-
+                                    <strong id="metric-pages-{{ relatorio.tipo }}">—</strong>
+                                    <span>Páginas OMIE</span>
                                 </div>
-
                             </div>
 
-                            <div class="metric-item">
-
-                                <div class="metric-icon">
-                                    ▤
-                                </div>
-
+                            <div class="metric">
+                                <i>⚡</i>
                                 <div>
-
-                                    <strong id="metric-pages-{{ relatorio.tipo }}">
-                                        —
-                                    </strong>
-
-                                    <span>
-                                        Páginas OMIE
-                                    </span>
-
+                                    <strong id="metric-mode-{{ relatorio.tipo }}">—</strong>
+                                    <span>Modo de busca</span>
                                 </div>
-
                             </div>
 
-                            <div class="metric-item">
-
-                                <div class="metric-icon">
-                                    ⚡
-                                </div>
-
+                            <div class="metric">
+                                <i>♙</i>
                                 <div>
-
-                                    <strong id="metric-mode-{{ relatorio.tipo }}">
-                                        —
-                                    </strong>
-
-                                    <span>
-                                        Modo de busca
-                                    </span>
-
+                                    <strong id="metric-workers-{{ relatorio.tipo }}">—</strong>
+                                    <span>Workers</span>
                                 </div>
-
                             </div>
 
-                            <div class="metric-item">
-
-                                <div class="metric-icon">
-                                    ♚
-                                </div>
-
+                            <div class="metric">
+                                <i>◎</i>
                                 <div>
-
-                                    <strong id="metric-workers-{{ relatorio.tipo }}">
-                                        —
-                                    </strong>
-
-                                    <span>
-                                        Workers
-                                    </span>
-
+                                    <strong id="metric-cache-{{ relatorio.tipo }}">—</strong>
+                                    <span>Cache</span>
                                 </div>
-
-                            </div>
-
-                            <div class="metric-item">
-
-                                <div class="metric-icon">
-                                    ◎
-                                </div>
-
-                                <div>
-
-                                    <strong id="metric-cache-{{ relatorio.tipo }}">
-                                        —
-                                    </strong>
-
-                                    <span>
-                                        Cache
-                                    </span>
-
-                                </div>
-
                             </div>
 
                         </div>
 
-                        <pre
-                            class="raw-log"
-                            id="log-box-{{ relatorio.tipo }}"
-                        >{{ relatorio.status.ultimo_log }}</pre>
+                        <pre class="raw-log" id="log-box-{{ relatorio.tipo }}">{{ relatorio.status.ultimo_log }}</pre>
 
                     </div>
 
@@ -417,57 +208,26 @@
             <section class="schedule-bar">
 
                 <div class="schedule-title">
-
-                    <span>
-                        ⚙
-                    </span>
-
-                    <strong>
-                        ATUALIZAÇÕES AUTOMÁTICAS CONFIGURADAS:
-                    </strong>
-
+                    <span>⚙</span>
+                    <strong>ATUALIZAÇÕES AUTOMÁTICAS CONFIGURADAS:</strong>
                 </div>
 
                 <div class="schedule-item geniale-schedule">
-
-                    <span>
-                        ◷
-                    </span>
-
-                    <strong>
-                        GENIALE:
-                    </strong>
-
+                    <span>◷</span>
+                    <strong>GENIALE:</strong>
                     08:00h diariamente
-
                 </div>
 
                 <div class="schedule-item paniz-schedule">
-
-                    <span>
-                        ◷
-                    </span>
-
-                    <strong>
-                        PANIZ:
-                    </strong>
-
+                    <span>◷</span>
+                    <strong>PANIZ:</strong>
                     08:00h diariamente
-
                 </div>
 
                 <div class="schedule-item financeiro-schedule">
-
-                    <span>
-                        ◷
-                    </span>
-
-                    <strong>
-                        FINANCEIRO:
-                    </strong>
-
+                    <span>◷</span>
+                    <strong>FINANCEIRO:</strong>
                     08:00h e 12:00h
-
                 </div>
 
             </section>
@@ -479,41 +239,30 @@
     <script>
 
         function extrairValorLog(log, chave) {
-
-            if (!log) {
-                return "";
-            }
+            if (!log) return "";
 
             const linhas = log.split("\n");
 
             for (const linha of linhas) {
-
                 if (linha.startsWith(chave + ":")) {
                     return linha.replace(chave + ":", "").trim();
                 }
-
             }
 
             return "";
         }
 
         function formatarNumero(valor) {
-
-            if (!valor) {
-                return "—";
-            }
+            if (!valor) return "—";
 
             const numero = Number(String(valor).replace(/\D/g, ""));
 
-            if (!numero) {
-                return valor;
-            }
+            if (!numero) return valor;
 
             return numero.toLocaleString("pt-BR");
         }
 
         function atualizarMetricas(tipo, log) {
-
             const status = extrairValorLog(log, "STATUS");
             const duracao = extrairValorLog(log, "DURAÇÃO");
             const registros = extrairValorLog(log, "REGISTROS OMIE");
@@ -522,76 +271,50 @@
             const workers = extrairValorLog(log, "WORKERS OMIE");
             const cache = extrairValorLog(log, "CACHE");
 
-            const metricStatus = document.getElementById(`metric-status-${tipo}`);
             const metricDuration = document.getElementById(`metric-duration-${tipo}`);
             const metricRecords = document.getElementById(`metric-records-${tipo}`);
             const metricPages = document.getElementById(`metric-pages-${tipo}`);
             const metricMode = document.getElementById(`metric-mode-${tipo}`);
             const metricWorkers = document.getElementById(`metric-workers-${tipo}`);
             const metricCache = document.getElementById(`metric-cache-${tipo}`);
+            const statusMain = document.getElementById(`status-main-${tipo}`);
 
-            if (metricStatus) {
-                metricStatus.innerText = status || "—";
-            }
-
-            if (metricDuration) {
-                metricDuration.innerText = duracao || "—";
-            }
-
-            if (metricRecords) {
-                metricRecords.innerText = formatarNumero(registros);
-            }
-
-            if (metricPages) {
-                metricPages.innerText = paginas || "—";
-            }
-
-            if (metricMode) {
-                metricMode.innerText = modo || "—";
-            }
-
-            if (metricWorkers) {
-                metricWorkers.innerText = workers || "—";
-            }
-
-            if (metricCache) {
-                metricCache.innerText = cache || "—";
-            }
-
+            if (metricDuration) metricDuration.innerText = duracao || "—";
+            if (metricRecords) metricRecords.innerText = formatarNumero(registros);
+            if (metricPages) metricPages.innerText = paginas || "—";
+            if (metricMode) metricMode.innerText = modo || "—";
+            if (metricWorkers) metricWorkers.innerText = workers || "—";
+            if (metricCache) metricCache.innerText = cache || "—";
+            if (statusMain) statusMain.innerText = status || "OK";
         }
 
         function toggleLog(tipo) {
-
             const logBox = document.getElementById(`log-box-${tipo}`);
 
-            if (!logBox) {
-                return;
-            }
+            if (!logBox) return;
 
             logBox.classList.toggle("visible");
         }
 
         async function iniciarAtualizacao(tipo) {
-
             const card = document.getElementById(`card-${tipo}`);
             const botao = document.getElementById(`update-btn-${tipo}`);
             const statusTexto = document.getElementById(`status-text-${tipo}`);
+            const statusMain = document.getElementById(`status-main-${tipo}`);
             const statusBadge = document.getElementById(`status-badge-${tipo}`);
 
-            if (!card || !botao || !statusTexto || !statusBadge) {
-                return;
-            }
+            if (!card || !botao || !statusTexto || !statusBadge) return;
 
             botao.disabled = true;
-            botao.innerHTML = "<span>⏳</span> ATUALIZANDO...";
+            botao.innerHTML = "<b>⏳</b> ATUALIZANDO...";
 
-            card.classList.add("card-updating");
+            card.classList.add("updating");
 
+            if (statusMain) statusMain.innerText = "PROCESSANDO";
             statusTexto.innerText = "Atualizando...";
-            statusBadge.className = "status-badge atualizando";
+            statusBadge.className = "status-box atualizando";
 
             try {
-
                 const resposta = await fetch(`/api/atualizar/${tipo}`);
                 const dados = await resposta.json();
 
@@ -600,45 +323,39 @@
                 }
 
             } catch (erro) {
-
+                if (statusMain) statusMain.innerText = "ERRO";
                 statusTexto.innerText = "Erro ao iniciar atualização";
-                statusBadge.className = "status-badge erro";
+                statusBadge.className = "status-box erro";
 
                 botao.disabled = false;
-                botao.innerHTML = "<span>↻</span> ATUALIZAR";
+                botao.innerHTML = "<b>↻</b> ATUALIZAR";
 
-                card.classList.remove("card-updating");
+                card.classList.remove("updating");
             }
-
         }
 
         async function atualizarStatus() {
-
             try {
-
                 const resposta = await fetch("/api/status");
                 const relatorios = await resposta.json();
 
                 relatorios.forEach(function(relatorio) {
-
                     const tipo = relatorio.tipo;
                     const status = relatorio.status;
 
                     const card = document.getElementById(`card-${tipo}`);
                     const statusTexto = document.getElementById(`status-text-${tipo}`);
+                    const statusMain = document.getElementById(`status-main-${tipo}`);
                     const statusBadge = document.getElementById(`status-badge-${tipo}`);
                     const updateDate = document.getElementById(`update-date-${tipo}`);
                     const updateBtn = document.getElementById(`update-btn-${tipo}`);
                     const logBox = document.getElementById(`log-box-${tipo}`);
 
-                    if (!card || !statusTexto || !statusBadge || !updateDate || !updateBtn) {
-                        return;
-                    }
+                    if (!card || !statusTexto || !statusBadge || !updateDate || !updateBtn) return;
 
                     statusTexto.innerText = status.texto;
                     updateDate.innerText = status.ultima;
-
-                    statusBadge.className = `status-badge ${status.cor}`;
+                    statusBadge.className = `status-box ${status.cor}`;
 
                     if (logBox) {
                         logBox.innerText = status.ultimo_log;
@@ -647,36 +364,26 @@
                     atualizarMetricas(tipo, status.ultimo_log);
 
                     if (status.cor === "atualizando") {
-
-                        card.classList.add("card-updating");
-
+                        card.classList.add("updating");
+                        if (statusMain) statusMain.innerText = "PROCESSANDO";
                         updateBtn.disabled = true;
-                        updateBtn.innerHTML = "<span>⏳</span> ATUALIZANDO...";
-
+                        updateBtn.innerHTML = "<b>⏳</b> ATUALIZANDO...";
                     } else {
-
-                        card.classList.remove("card-updating");
-
+                        card.classList.remove("updating");
                         updateBtn.disabled = false;
-                        updateBtn.innerHTML = "<span>↻</span> ATUALIZAR";
-
+                        updateBtn.innerHTML = "<b>↻</b> ATUALIZAR";
                     }
-
                 });
 
             } catch (erro) {
                 console.log("Erro ao atualizar status:", erro);
             }
-
         }
 
         function atualizarRelogioLocal() {
-
             const elemento = document.getElementById("clock-time");
 
-            if (!elemento) {
-                return;
-            }
+            if (!elemento) return;
 
             const agora = new Date();
 
@@ -697,14 +404,11 @@
         }
 
         document.addEventListener("DOMContentLoaded", function() {
-
             const logs = document.querySelectorAll(".raw-log");
 
             logs.forEach(function(log) {
-
                 const tipo = log.id.replace("log-box-", "");
                 atualizarMetricas(tipo, log.innerText);
-
             });
 
             atualizarStatus();
@@ -712,7 +416,6 @@
 
             setInterval(atualizarStatus, 5000);
             setInterval(atualizarRelogioLocal, 1000);
-
         });
 
     </script>
