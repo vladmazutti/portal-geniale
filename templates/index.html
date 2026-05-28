@@ -13,12 +13,8 @@
     <main class="home-container">
 
         <header class="topbar compact-panel">
-            <div class="brand-main">
-                <img src="{{ url_for('static', filename='grupo_geniale.png') }}" class="brand-logo" alt="Grupo Geniale">
-                <div class="brand-text">
-                    <strong>GRUPO GENIALE</strong>
-                    <span>Central operacional de relatórios</span>
-                </div>
+            <div class="topbar-left">
+                <img src="{{ url_for('static', filename='logo.png') }}" class="top-logo" alt="Geniale">
             </div>
 
             <div class="topbar-right">
@@ -44,31 +40,34 @@
         </section>
 
         <p class="hero-subtitle">
-            Selecione o relatório que deseja atualizar, visualizar ou baixar
+            Selecione o relatório que deseja visualizar ou baixar
         </p>
 
         <section class="reports-grid">
 
             {% for relatorio in relatorios %}
 
-            <article class="report-card {{ relatorio.classe }}" id="card-{{ relatorio.tipo }}">
+            <article class="report-card {{ relatorio.classe }}">
 
                 <div class="report-left">
                     {% if relatorio.tipo == "financeiro" %}
+
                     <div class="financeiro-stack">
                         <img src="{{ url_for('static', filename='logo.png') }}" alt="Geniale">
                         <div class="financeiro-plus">+</div>
                         <img src="{{ url_for('static', filename='logo_paniz.png') }}" alt="Paniz">
                     </div>
+
                     {% else %}
+
                     <img src="{{ url_for('static', filename=relatorio.logo) }}" class="report-logo" alt="{{ relatorio.nome }}">
+
                     {% endif %}
                 </div>
 
                 <div class="report-center">
                     <h2>{{ relatorio.nome }}</h2>
                     <span>{{ relatorio.titulo }}</span>
-                    <small>{{ relatorio.descricao }}</small>
                 </div>
 
                 <div class="report-status">
@@ -79,8 +78,6 @@
                                 ATUALIZANDO
                             {% elif relatorio.status.cor == "erro" %}
                                 ERRO
-                            {% elif relatorio.status.cor == "pendente" %}
-                                PENDENTE
                             {% else %}
                                 ATUALIZADO
                             {% endif %}
@@ -118,12 +115,12 @@
                 <div class="schedule-icon">↻</div>
                 <div>
                     <strong>ATUALIZAÇÃO AUTOMÁTICA</strong>
-                    <span>Geniale + Financeiro: 08:00 e 12:00 diariamente · Paniz: 08:00 diariamente</span>
+                    <span>Geniale e Paniz: 08:00 diariamente · Financeiro: 08:00 e 12:00 diariamente</span>
                 </div>
             </div>
 
             <div class="schedule-right">
-                <span id="home-summary">Status sincronizado com o servidor</span>
+                <span>Execução sob demanda disponível pelo botão</span>
             </div>
         </section>
 
@@ -154,19 +151,13 @@
             }
 
             if (pill) {
-                pill.classList.remove("ok", "erro", "pendente");
+                pill.classList.remove("ok", "erro");
                 pill.classList.add("atualizando");
             }
 
             try {
-                const resposta = await fetch(`/api/atualizar/${tipo}`);
-                const dados = await resposta.json();
-
-                if (!dados.sucesso && dados.mensagem) {
-                    console.log(dados.mensagem);
-                }
-
-                setTimeout(atualizarStatus, 1800);
+                await fetch(`/api/atualizar/${tipo}`);
+                setTimeout(atualizarStatus, 2500);
             } catch (erro) {
                 console.log(erro);
                 botao.disabled = false;
@@ -174,22 +165,13 @@
             }
         }
 
-        function textoStatus(cor) {
-            if (cor === "atualizando") return "ATUALIZANDO";
-            if (cor === "erro") return "ERRO";
-            if (cor === "pendente") return "PENDENTE";
-            return "ATUALIZADO";
-        }
-
         async function atualizarStatus() {
             try {
                 const resposta = await fetch("/api/status");
                 const dados = await resposta.json();
-                const relatorios = dados.relatorios || {};
-                const resumo = dados.resumo || {};
 
-                Object.keys(relatorios).forEach((tipo) => {
-                    const item = relatorios[tipo];
+                Object.keys(dados).forEach((tipo) => {
+                    const item = dados[tipo];
                     const status = document.getElementById(`status-main-${tipo}`);
                     const data = document.getElementById(`status-date-${tipo}`);
                     const pill = document.getElementById(`status-pill-${tipo}`);
@@ -200,32 +182,29 @@
                     }
 
                     const cor = item.cor || "ok";
-                    status.innerText = textoStatus(cor);
+
+                    if (cor === "atualizando") {
+                        status.innerText = "ATUALIZANDO";
+                    } else if (cor === "erro") {
+                        status.innerText = "ERRO";
+                    } else {
+                        status.innerText = "ATUALIZADO";
+                    }
 
                     if (data && item.ultima) {
                         data.innerText = item.ultima;
                     }
 
                     if (pill) {
-                        pill.classList.remove("ok", "erro", "atualizando", "pendente");
+                        pill.classList.remove("ok", "erro", "atualizando");
                         pill.classList.add(cor);
                     }
 
-                    if (botao) {
-                        if (cor === "atualizando") {
-                            botao.disabled = true;
-                            botao.innerHTML = "⏳ Atualizando...";
-                        } else {
-                            botao.disabled = false;
-                            botao.innerHTML = "↻ Atualizar";
-                        }
+                    if (botao && cor !== "atualizando") {
+                        botao.disabled = false;
+                        botao.innerHTML = "↻ Atualizar";
                     }
                 });
-
-                const homeSummary = document.getElementById("home-summary");
-                if (homeSummary) {
-                    homeSummary.innerText = `${resumo.ativos || 0} execução(ões) ativa(s) · ${resumo.disponiveis || 0}/${resumo.total_relatorios || 0} relatório(s) disponível(is)`;
-                }
             } catch (erro) {
                 console.log(erro);
             }
@@ -242,7 +221,7 @@
         atualizarStatus();
 
         setInterval(atualizarRelogio, 1000);
-        setInterval(atualizarStatus, 10000);
+        setInterval(atualizarStatus, 15000);
     </script>
 
 </body>

@@ -13,11 +13,11 @@
     <main class="admin-container">
 
         <header class="admin-topbar compact-panel">
-            <div class="brand-main">
-                <img src="/static/grupo_geniale.png" class="brand-logo" alt="Grupo Geniale">
-                <div class="brand-text">
-                    <strong>GRUPO GENIALE</strong>
-                    <span>Painel técnico operacional</span>
+            <div class="admin-top-left">
+                <img src="/static/grupo_geniale.png" class="grupo-logo" alt="Grupo Geniale">
+                <div>
+                    <h1>PAINEL TÉCNICO</h1>
+                    <span>Monitoramento operacional do gerador de planilhas</span>
                 </div>
             </div>
 
@@ -34,95 +34,113 @@
             </div>
         </header>
 
-        <section class="admin-title-row">
-            <div>
-                <h1>MONITORAMENTO DOS RELATÓRIOS</h1>
-                <p>Status real das execuções, últimas atualizações e logs registrados pelo backend.</p>
-            </div>
-            <div class="admin-sync-pill">
-                <span class="status-dot"></span>
-                <strong id="admin-last-sync">Sincronizando...</strong>
-            </div>
-        </section>
-
         <section class="metrics-grid compact-metrics">
             <div class="metric-card green">
-                <span>RELATÓRIOS DISPONÍVEIS</span>
-                <strong id="metric-available">-</strong>
-                <small>Arquivos prontos para download</small>
+                <span>STATUS GERAL</span>
+                <strong>OK</strong>
+                <small>Sistema operacional</small>
+            </div>
+
+            <div class="metric-card blue">
+                <span>DURAÇÃO</span>
+                <strong id="metric-duration">42s</strong>
+                <small>Última atualização</small>
             </div>
 
             <div class="metric-card orange">
-                <span>EXECUÇÕES ATIVAS</span>
-                <strong id="metric-active">-</strong>
-                <small>Atualizações rodando agora</small>
+                <span>REGISTROS</span>
+                <strong id="metric-registers">12.482</strong>
+                <small>Total processados</small>
             </div>
 
             <div class="metric-card purple">
-                <span>TOTAL DE RELATÓRIOS</span>
-                <strong id="metric-total">-</strong>
-                <small>Estrutura escalável</small>
+                <span>PÁGINAS OMIE</span>
+                <strong id="metric-pages">114</strong>
+                <small>Total de páginas</small>
             </div>
 
-            <div class="metric-card red">
-                <span>ERROS ATUAIS</span>
-                <strong id="metric-errors">-</strong>
-                <small id="metric-last-error">Nenhum erro recente</small>
-            </div>
-        </section>
-
-        <section class="admin-table-panel">
-            <div class="panel-header">
-                <div>
-                    <h2>STATUS POR RELATÓRIO</h2>
-                    <span>Atualizado automaticamente via /api/status</span>
-                </div>
+            <div class="metric-card cyan">
+                <span>MODO</span>
+                <strong>Completo</strong>
+                <small>Tipo de execução</small>
             </div>
 
-            <div class="reports-table-wrap">
-                <table class="reports-table">
-                    <thead>
-                        <tr>
-                            <th>Relatório</th>
-                            <th>Status</th>
-                            <th>Última atualização</th>
-                            <th>Duração</th>
-                            <th>Registros</th>
-                            <th>Páginas</th>
-                            <th>Execução atual</th>
-                        </tr>
-                    </thead>
-                    <tbody id="admin-report-rows">
-                        <tr>
-                            <td colspan="7">Carregando status...</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="metric-card cyan">
+                <span>WORKERS</span>
+                <strong id="metric-workers">4</strong>
+                <small>Threads ativas</small>
+            </div>
+
+            <div class="metric-card green">
+                <span>CACHE</span>
+                <strong>HIT</strong>
+                <small>Dados otimizados</small>
+            </div>
+
+            <div class="metric-card orange">
+                <span>USO OMIE</span>
+                <strong>114 / 5.000</strong>
+                <small>Limite de requisições</small>
             </div>
         </section>
 
         <section class="admin-bottom-grid compact-bottom-grid">
             <div class="logs-panel">
                 <div class="panel-header">
-                    <div>
-                        <h2>LOG REAL DA ÚLTIMA EXECUÇÃO</h2>
-                        <span id="selected-log-title">Selecione um relatório na lista ao lado</span>
-                    </div>
+                    <h2>LOGS DA ÚLTIMA EXECUÇÃO</h2>
+                    <button class="clear-btn">🗑 LIMPAR LOGS</button>
                 </div>
 
-                <pre id="system-log">Carregando logs reais...</pre>
+                <pre id="system-log">[08:00:40] Iniciando atualização — GENIALE COMERCIAL
+[08:00:40] Modo de execução: COMPLETO
+[08:00:40] Workers iniciados: 4
+[08:00:41] Buscando dados da OMIE...
+[08:00:42] Página 1/114 carregada (100 registros)
+[08:00:42] Página 2/114 carregada (100 registros)
+[08:00:43] Página 3/114 carregada (100 registros)
+[08:00:43] ...
+
+[08:01:05] Processamento concluído
+[08:01:05] Registros processados: 12.482
+[08:01:05] Cache: HIT
+[08:01:05] Duração total: 42s
+
+[08:01:05] Atualização finalizada com sucesso!</pre>
             </div>
 
             <div class="history-panel">
                 <div class="panel-header">
-                    <div>
-                        <h2>RELATÓRIOS</h2>
-                        <span>Clique para visualizar o último log</span>
-                    </div>
+                    <h2>HISTÓRICO RECENTE</h2>
                 </div>
 
-                <div class="history-list" id="admin-report-list">
-                    <div class="history-empty">Carregando relatórios...</div>
+                <div class="history-list">
+                    <div class="history-item">
+                        <div class="history-dot"></div>
+                        <span>13/05/2025 08:01:05</span>
+                        <strong>Sucesso</strong>
+                        <small>42s</small>
+                    </div>
+
+                    <div class="history-item">
+                        <div class="history-dot"></div>
+                        <span>13/05/2025 07:31:02</span>
+                        <strong>Sucesso</strong>
+                        <small>38s</small>
+                    </div>
+
+                    <div class="history-item">
+                        <div class="history-dot"></div>
+                        <span>13/05/2025 07:01:03</span>
+                        <strong>Sucesso</strong>
+                        <small>41s</small>
+                    </div>
+
+                    <div class="history-item">
+                        <div class="history-dot"></div>
+                        <span>13/05/2025 06:31:04</span>
+                        <strong>Sucesso</strong>
+                        <small>39s</small>
+                    </div>
                 </div>
             </div>
         </section>
@@ -130,21 +148,18 @@
         <footer class="admin-footer compact-panel">
             <div class="admin-footer-left">
                 <div class="shield-icon">🛡</div>
-                Sistema monitorado com dados reais do backend
+                Sistema monitorado em tempo real
             </div>
 
             <div class="admin-footer-right">
-                Última execução registrada:
-                <strong id="footer-last-execution">-</strong>
+                Última atualização:
+                <strong>13/05/2025 08:01:05</strong>
             </div>
         </footer>
 
     </main>
 
     <script>
-        let ultimoStatus = null;
-        let relatorioSelecionado = null;
-
         function atualizarRelogioAdmin() {
             const agora = new Date();
 
@@ -152,127 +167,8 @@
             document.getElementById("admin-clock-date").innerText = agora.toLocaleDateString("pt-BR");
         }
 
-        function textoStatus(cor) {
-            if (cor === "atualizando") return "ATUALIZANDO";
-            if (cor === "erro") return "ERRO";
-            if (cor === "pendente") return "PENDENTE";
-            return "OK";
-        }
-
-        function classeStatus(cor) {
-            return `status-pill ${cor || "ok"}`;
-        }
-
-        function renderizarMetricas(resumo) {
-            document.getElementById("metric-available").innerText = `${resumo.disponiveis || 0}/${resumo.total_relatorios || 0}`;
-            document.getElementById("metric-active").innerText = resumo.ativos || 0;
-            document.getElementById("metric-total").innerText = resumo.total_relatorios || 0;
-            document.getElementById("metric-errors").innerText = resumo.erros || 0;
-            document.getElementById("metric-last-error").innerText = resumo.ultimo_erro || "Nenhum erro recente";
-            document.getElementById("footer-last-execution").innerText = resumo.ultima_execucao || "-";
-            document.getElementById("admin-last-sync").innerText = `Sincronizado às ${new Date().toLocaleTimeString("pt-BR", { hour12: false })}`;
-        }
-
-        function renderizarTabela(relatorios) {
-            const tbody = document.getElementById("admin-report-rows");
-            const linhas = Object.keys(relatorios).map((tipo) => {
-                const item = relatorios[tipo];
-                const metricas = item.metricas || {};
-                const execucaoAtual = item.em_execucao
-                    ? `Desde ${item.inicio_execucao || "agora"} · ${item.duracao_execucao || "em andamento"}`
-                    : "-";
-
-                return `
-                    <tr onclick="selecionarRelatorio('${tipo}')">
-                        <td>
-                            <strong>${item.nome}</strong>
-                            <small>${item.titulo || ""}</small>
-                        </td>
-                        <td>
-                            <div class="${classeStatus(item.cor)}">
-                                <div class="status-dot"></div>
-                                <strong>${textoStatus(item.cor)}</strong>
-                            </div>
-                        </td>
-                        <td>${item.ultima || "-"}</td>
-                        <td>${item.em_execucao ? (item.duracao_execucao || "Rodando") : (metricas.duracao || "-")}</td>
-                        <td>${metricas.registros || "0"}</td>
-                        <td>${metricas.paginas || "0"}</td>
-                        <td>${execucaoAtual}</td>
-                    </tr>
-                `;
-            }).join("");
-
-            tbody.innerHTML = linhas || `<tr><td colspan="7">Nenhum relatório configurado.</td></tr>`;
-        }
-
-        function renderizarLista(relatorios) {
-            const lista = document.getElementById("admin-report-list");
-            const itens = Object.keys(relatorios).map((tipo) => {
-                const item = relatorios[tipo];
-                const metricas = item.metricas || {};
-                const ativo = tipo === relatorioSelecionado ? "active" : "";
-
-                return `
-                    <button class="history-button ${ativo}" onclick="selecionarRelatorio('${tipo}')">
-                        <div class="history-dot ${item.cor || "ok"}"></div>
-                        <span>${item.nome}</span>
-                        <strong>${textoStatus(item.cor)}</strong>
-                        <small>${item.em_execucao ? (item.duracao_execucao || "rodando") : (metricas.duracao || "-")}</small>
-                    </button>
-                `;
-            }).join("");
-
-            lista.innerHTML = itens || `<div class="history-empty">Nenhum relatório encontrado.</div>`;
-        }
-
-        function selecionarRelatorio(tipo) {
-            relatorioSelecionado = tipo;
-
-            if (!ultimoStatus || !ultimoStatus.relatorios || !ultimoStatus.relatorios[tipo]) {
-                return;
-            }
-
-            const item = ultimoStatus.relatorios[tipo];
-            const log = item.ultimo_log || "Sem histórico de atualização";
-
-            document.getElementById("selected-log-title").innerText = `${item.nome} · ${item.texto}`;
-            document.getElementById("system-log").innerText = log;
-
-            renderizarLista(ultimoStatus.relatorios);
-        }
-
-        async function atualizarPainel() {
-            try {
-                const resposta = await fetch("/api/status");
-                const dados = await resposta.json();
-
-                ultimoStatus = dados;
-
-                renderizarMetricas(dados.resumo || {});
-                renderizarTabela(dados.relatorios || {});
-                renderizarLista(dados.relatorios || {});
-
-                if (!relatorioSelecionado) {
-                    const primeiroTipo = Object.keys(dados.relatorios || {})[0];
-                    if (primeiroTipo) {
-                        selecionarRelatorio(primeiroTipo);
-                    }
-                } else {
-                    selecionarRelatorio(relatorioSelecionado);
-                }
-            } catch (erro) {
-                console.log(erro);
-                document.getElementById("admin-last-sync").innerText = "Falha ao sincronizar";
-                document.getElementById("system-log").innerText = "Não foi possível carregar /api/status.";
-            }
-        }
-
         atualizarRelogioAdmin();
-        atualizarPainel();
-
         setInterval(atualizarRelogioAdmin, 1000);
-        setInterval(atualizarPainel, 5000);
     </script>
 
 </body>

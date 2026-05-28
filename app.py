@@ -49,7 +49,6 @@ RELATORIOS = {
         "restrito": False,
         "logo": "logo.png",
         "classe": "geniale",
-        "grupo_atualizacao": "geniale_financeiro",
     },
     "paniz": {
         "nome": "PANIZ",
@@ -67,7 +66,6 @@ RELATORIOS = {
         "restrito": False,
         "logo": "logo_paniz.png",
         "classe": "paniz",
-        "grupo_atualizacao": "paniz",
     },
     "financeiro": {
         "nome": "FINANCEIRO",
@@ -85,109 +83,8 @@ RELATORIOS = {
         "restrito": True,
         "logo": None,
         "classe": "financeiro",
-        "grupo_atualizacao": "geniale_financeiro",
     },
 }
-
-
-def obter_tipos_do_grupo_atualizacao(tipo):
-    if tipo not in RELATORIOS:
-        raise Exception("Relatório inválido.")
-
-    grupo = RELATORIOS[tipo].get("grupo_atualizacao")
-
-    if not grupo:
-        return [tipo]
-
-    return [
-        tipo_relatorio
-        for tipo_relatorio, config in RELATORIOS.items()
-        if config.get("grupo_atualizacao") == grupo
-    ]
-
-
-def obter_nome_execucao(tipo):
-    tipos = obter_tipos_do_grupo_atualizacao(tipo)
-
-    if len(tipos) <= 1:
-        return RELATORIOS[tipo]["nome"]
-
-    nomes = [RELATORIOS[tipo_relatorio]["nome"] for tipo_relatorio in tipos]
-    return " + ".join(nomes)
-
-
-def obter_credenciais_omie(config):
-    app_key = os.getenv(config["env_key"])
-    app_secret = os.getenv(config["env_secret"])
-
-    if not app_key or not app_secret:
-        raise Exception(
-            f"Credenciais OMIE não configuradas para {config['nome']}. "
-            f"Verifique {config['env_key']} e {config['env_secret']} no Railway."
-        )
-
-    return app_key, app_secret
-
-
-def validar_modelos_relatorios(tipos):
-    for tipo_relatorio in tipos:
-        config = RELATORIOS[tipo_relatorio]
-
-        if not os.path.exists(config["modelo"]):
-            raise Exception(f"Modelo não encontrado: {config['modelo']}")
-
-
-def garantir_status_grupo(tipos, status):
-    for tipo_relatorio in tipos:
-        definir_status(tipo_relatorio, status)
-
-
-def limpar_jobs_grupo(tipos):
-    with jobs_lock:
-        for tipo_relatorio in tipos:
-            jobs_em_execucao[tipo_relatorio] = False
-
-
-def registrar_jobs_grupo(tipos, tipo_solicitado):
-    inicio_iso = agora_brasil().isoformat()
-
-    with jobs_lock:
-        for tipo_relatorio in tipos:
-            if jobs_em_execucao.get(tipo_relatorio):
-                return False
-
-        for tipo_relatorio in tipos:
-            jobs_em_execucao[tipo_relatorio] = {
-                "ativo": True,
-                "inicio": inicio_iso,
-                "acionado_por": tipo_solicitado,
-            }
-
-    return True
-
-
-def buscar_dados_omie_para_execucao(tipo_solicitado, tipos):
-    config_consulta = RELATORIOS[tipo_solicitado]
-    app_key, app_secret = obter_credenciais_omie(config_consulta)
-
-    resultado = buscar_clientes_omie(
-        app_key,
-        app_secret,
-        config_consulta
-    )
-
-    for tipo_relatorio in tipos:
-        if tipo_relatorio == tipo_solicitado:
-            continue
-
-        salvar_snapshot_cache(
-            RELATORIOS[tipo_relatorio],
-            resultado["linhas"],
-            resultado["total_paginas"],
-            resultado["modo"]
-        )
-
-    return resultado
 
 
 def garantir_pasta_logs():
@@ -277,76 +174,6 @@ def obter_ultimo_log(config):
     return "Sem histórico de atualização"
 
 
-
-def extrair_valor_log(log, chave, padrao="-"):
-    if not log or log == "Sem histórico de atualização":
-        return padrao
-
-    prefixo = f"{chave}:"
-
-    for linha in log.splitlines():
-        linha_limpa = linha.strip()
-
-        if linha_limpa.startswith(prefixo):
-            return linha_limpa.replace(prefixo, "", 1).strip() or padrao
-
-    return padrao
-
-
-def obter_metricas_ultimo_log(config):
-    ultimo_log = obter_ultimo_log(config)
-
-    return {
-        "data_hora": extrair_valor_log(ultimo_log, "DATA/HORA", "-"),
-        "status_execucao": extrair_valor_log(ultimo_log, "STATUS", "-"),
-        "inicio": extrair_valor_log(ultimo_log, "INÍCIO", "-"),
-        "fim": extrair_valor_log(ultimo_log, "FIM", "-"),
-        "duracao": extrair_valor_log(ultimo_log, "DURAÇÃO", "-"),
-        "registros": extrair_valor_log(ultimo_log, "REGISTROS OMIE", "0"),
-        "paginas": extrair_valor_log(ultimo_log, "PÁGINAS OMIE", "0"),
-        "modo": extrair_valor_log(ultimo_log, "MODO OMIE", "-"),
-        "workers": extrair_valor_log(ultimo_log, "WORKERS OMIE", str(OMIE_MAX_WORKERS)),
-        "cache": extrair_valor_log(ultimo_log, "CACHE", "-"),
-        "erro": extrair_valor_log(ultimo_log, "ERRO", ""),
-        "ultimo_log": ultimo_log,
-    }
-
-
-def obter_info_job(tipo):
-    with jobs_lock:
-        job = jobs_em_execucao.get(tipo)
-
-    if not job:
-        return {
-            "em_execucao": False,
-            "inicio_execucao": "",
-            "duracao_execucao": "",
-        }
-
-    if isinstance(job, dict):
-        inicio_iso = job.get("inicio", "")
-
-        try:
-            inicio = datetime.fromisoformat(inicio_iso)
-            duracao = formatar_duracao((agora_brasil() - inicio).total_seconds())
-            inicio_texto = inicio.strftime("%d/%m/%Y %H:%M:%S")
-        except Exception:
-            duracao = ""
-            inicio_texto = ""
-
-        return {
-            "em_execucao": True,
-            "inicio_execucao": inicio_texto,
-            "duracao_execucao": duracao,
-        }
-
-    return {
-        "em_execucao": True,
-        "inicio_execucao": "",
-        "duracao_execucao": "",
-    }
-
-
 def registrar_log_atualizacao(
     tipo,
     status,
@@ -393,45 +220,33 @@ def registrar_log_atualizacao(
 
 def obter_status(tipo, config):
     status_interno = ler_arquivo(config["arquivo_status"], "")
-    existe = os.path.exists(config["arquivo_pronto"])
-    metricas = obter_metricas_ultimo_log(config)
-    job = obter_info_job(tipo)
 
-    if job["em_execucao"] or status_interno == "atualizando":
+    if status_interno == "atualizando":
         return {
             "texto": "Atualizando...",
             "cor": "atualizando",
-            "existe": existe,
+            "existe": os.path.exists(config["arquivo_pronto"]),
             "ultima": obter_ultima_atualizacao(config),
-            "ultimo_log": metricas["ultimo_log"],
-            "metricas": metricas,
-            **job,
+            "ultimo_log": obter_ultimo_log(config),
         }
 
     if status_interno.startswith("erro"):
-        erro_status = status_interno.replace("erro:", "", 1).strip()
-
-        if erro_status and not metricas.get("erro"):
-            metricas["erro"] = erro_status
-
         return {
             "texto": "Erro na atualização",
             "cor": "erro",
-            "existe": existe,
+            "existe": os.path.exists(config["arquivo_pronto"]),
             "ultima": obter_ultima_atualizacao(config),
-            "ultimo_log": metricas["ultimo_log"],
-            "metricas": metricas,
-            **job,
+            "ultimo_log": obter_ultimo_log(config),
         }
+
+    existe = os.path.exists(config["arquivo_pronto"])
 
     return {
         "texto": "Disponível para download" if existe else "Ainda não gerada",
         "cor": "ok" if existe else "pendente",
         "existe": existe,
         "ultima": obter_ultima_atualizacao(config),
-        "ultimo_log": metricas["ultimo_log"],
-        "metricas": metricas,
-        **job,
+        "ultimo_log": obter_ultimo_log(config),
     }
 
 
@@ -445,67 +260,6 @@ def montar_relatorios_para_tela():
         lista.append(item)
 
     return lista
-
-
-def montar_status_api():
-    relatorios = {}
-    ativos = 0
-    erros = 0
-    disponiveis = 0
-    ultima_execucao = "-"
-    ultimo_erro = "Nenhum erro recente"
-
-    for tipo, config in RELATORIOS.items():
-        status = obter_status(tipo, config)
-        metricas = status.get("metricas", {})
-
-        if status.get("em_execucao"):
-            ativos += 1
-
-        if status.get("cor") == "erro":
-            erros += 1
-            ultimo_erro = metricas.get("erro") or "Erro na última execução"
-
-        if status.get("existe"):
-            disponiveis += 1
-
-        if metricas.get("data_hora") and metricas.get("data_hora") != "-":
-            ultima_execucao = metricas.get("data_hora")
-
-        relatorios[tipo] = {
-            "tipo": tipo,
-            "nome": config["nome"],
-            "titulo": config["titulo"],
-            "descricao": config["descricao"],
-            "restrito": config["restrito"],
-            "classe": config["classe"],
-            "logo": config.get("logo"),
-            "texto": status["texto"],
-            "cor": status["cor"],
-            "existe": status["existe"],
-            "ultima": status["ultima"],
-            "em_execucao": status.get("em_execucao", False),
-            "inicio_execucao": status.get("inicio_execucao", ""),
-            "duracao_execucao": status.get("duracao_execucao", ""),
-            "ultimo_log": status.get("ultimo_log", "Sem histórico de atualização"),
-            "metricas": metricas,
-        }
-
-    resumo = {
-        "total_relatorios": len(RELATORIOS),
-        "ativos": ativos,
-        "erros": erros,
-        "disponiveis": disponiveis,
-        "pendentes": len(RELATORIOS) - disponiveis,
-        "ultima_execucao": ultima_execucao,
-        "ultimo_erro": ultimo_erro,
-        "agora": agora_formatado(),
-    }
-
-    return {
-        "resumo": resumo,
-        "relatorios": relatorios,
-    }
 
 
 def buscar_pagina_omie(
@@ -831,16 +585,31 @@ def salvar_workbook_com_seguranca(wb, arquivo_final):
     os.replace(arquivo_temporario, arquivo_final)
 
 
-def gerar_arquivo_planilha_com_dados(tipo, resultado_omie):
+def gerar_planilha(tipo):
     if tipo not in RELATORIOS:
         raise Exception("Relatório inválido.")
 
     config = RELATORIOS[tipo]
 
-    print(f"Gerando arquivo da planilha {config['nome']}...")
+    print(f"Iniciando atualização da planilha {config['nome']}...")
+
+    app_key = os.getenv(config["env_key"])
+    app_secret = os.getenv(config["env_secret"])
+
+    if not app_key or not app_secret:
+        raise Exception(
+            f"Credenciais OMIE não configuradas para {config['nome']}. "
+            f"Verifique {config['env_key']} e {config['env_secret']} no Railway."
+        )
 
     if not os.path.exists(config["modelo"]):
         raise Exception(f"Modelo não encontrado: {config['modelo']}")
+
+    resultado_omie = buscar_clientes_omie(
+        app_key,
+        app_secret,
+        config
+    )
 
     linhas = resultado_omie["linhas"]
     total_paginas = resultado_omie["total_paginas"]
@@ -881,119 +650,74 @@ def gerar_arquivo_planilha_com_dados(tipo, resultado_omie):
     }
 
 
-def gerar_planilha(tipo):
-    if tipo not in RELATORIOS:
-        raise Exception("Relatório inválido.")
-
-    config = RELATORIOS[tipo]
-
-    print(f"Iniciando atualização individual da planilha {config['nome']}...")
-
-    obter_credenciais_omie(config)
-    validar_modelos_relatorios([tipo])
-
-    resultado_omie = buscar_dados_omie_para_execucao(
-        tipo,
-        [tipo]
-    )
-
-    return gerar_arquivo_planilha_com_dados(
-        tipo,
-        resultado_omie
-    )
-
 def executar_atualizacao_background(tipo):
-    tipos = obter_tipos_do_grupo_atualizacao(tipo)
     inicio = agora_brasil()
+    registros = 0
+    paginas = 0
+    modo = "Paralelo"
+    cache_status = "Snapshot completo"
 
     try:
-        garantir_status_grupo(tipos, "atualizando")
-        validar_modelos_relatorios(tipos)
+        definir_status(tipo, "atualizando")
 
-        resultado_omie = buscar_dados_omie_para_execucao(
-            tipo,
-            tipos
+        resultado = gerar_planilha(tipo)
+
+        registros = resultado.get("registros", 0)
+        paginas = resultado.get("paginas", 0)
+        modo = resultado.get("modo", "Paralelo")
+        cache_status = resultado.get("cache", "Snapshot completo")
+
+        definir_status(tipo, "ok")
+
+        fim = agora_brasil()
+
+        registrar_log_atualizacao(
+            tipo=tipo,
+            status="OK",
+            inicio=inicio,
+            fim=fim,
+            registros=registros,
+            paginas=paginas,
+            modo=modo,
+            cache=cache_status,
+            erro=""
         )
-
-        for tipo_relatorio in tipos:
-            try:
-                resultado = gerar_arquivo_planilha_com_dados(
-                    tipo_relatorio,
-                    resultado_omie
-                )
-
-                fim = agora_brasil()
-
-                definir_status(tipo_relatorio, "ok")
-
-                registrar_log_atualizacao(
-                    tipo=tipo_relatorio,
-                    status="OK",
-                    inicio=inicio,
-                    fim=fim,
-                    registros=resultado.get("registros", 0),
-                    paginas=resultado.get("paginas", 0),
-                    modo=resultado.get("modo", "Paralelo"),
-                    cache=resultado.get("cache", "Snapshot completo"),
-                    erro=""
-                )
-
-            except Exception as erro_planilha:
-                fim = agora_brasil()
-                erro_texto = str(erro_planilha)
-
-                print(f"Erro ao gerar {tipo_relatorio}: {erro_texto}")
-                print(traceback.format_exc())
-
-                definir_status(tipo_relatorio, f"erro: {erro_texto}")
-
-                registrar_log_atualizacao(
-                    tipo=tipo_relatorio,
-                    status="ERRO",
-                    inicio=inicio,
-                    fim=fim,
-                    registros=resultado_omie.get("linhas") and len(resultado_omie.get("linhas")) or 0,
-                    paginas=resultado_omie.get("total_paginas", 0),
-                    modo=resultado_omie.get("modo", "Paralelo"),
-                    cache=resultado_omie.get("cache", "Snapshot completo"),
-                    erro=erro_texto
-                )
 
     except Exception as erro:
         fim = agora_brasil()
         erro_texto = str(erro)
 
-        print(f"Erro ao atualizar grupo {obter_nome_execucao(tipo)}: {erro_texto}")
+        print(f"Erro ao atualizar {tipo}: {erro_texto}")
         print(traceback.format_exc())
 
-        for tipo_relatorio in tipos:
-            definir_status(tipo_relatorio, f"erro: {erro_texto}")
+        definir_status(tipo, f"erro: {erro_texto}")
 
-            registrar_log_atualizacao(
-                tipo=tipo_relatorio,
-                status="ERRO",
-                inicio=inicio,
-                fim=fim,
-                registros=0,
-                paginas=0,
-                modo="Paralelo",
-                cache="Snapshot completo",
-                erro=erro_texto
-            )
+        registrar_log_atualizacao(
+            tipo=tipo,
+            status="ERRO",
+            inicio=inicio,
+            fim=fim,
+            registros=registros,
+            paginas=paginas,
+            modo=modo,
+            cache=cache_status,
+            erro=erro_texto
+        )
 
     finally:
-        limpar_jobs_grupo(tipos)
+        with jobs_lock:
+            jobs_em_execucao[tipo] = False
 
 
 def iniciar_atualizacao_background(tipo):
     if tipo not in RELATORIOS:
         raise Exception("Relatório inválido.")
 
-    tipos = obter_tipos_do_grupo_atualizacao(tipo)
-    registrado = registrar_jobs_grupo(tipos, tipo)
+    with jobs_lock:
+        if jobs_em_execucao.get(tipo):
+            return False
 
-    if not registrado:
-        return False
+        jobs_em_execucao[tipo] = True
 
     thread = Thread(
         target=executar_atualizacao_background,
@@ -1003,6 +727,7 @@ def iniciar_atualizacao_background(tipo):
     thread.start()
 
     return True
+
 
 def atualizar_agendado(tipo):
     try:
@@ -1048,7 +773,7 @@ def home():
 
 @app.route("/api/status")
 def api_status():
-    return jsonify(montar_status_api())
+    return jsonify(montar_relatorios_para_tela())
 
 
 @app.route("/api/atualizar/<tipo>")
@@ -1066,7 +791,7 @@ def api_atualizar(tipo):
             return jsonify({
                 "sucesso": True,
                 "mensagem": (
-                    f"A atualização de {obter_nome_execucao(tipo)} "
+                    f"A atualização da planilha {RELATORIOS[tipo]['nome']} "
                     f"foi iniciada em segundo plano."
                 )
             })
@@ -1074,8 +799,8 @@ def api_atualizar(tipo):
         return jsonify({
             "sucesso": False,
             "mensagem": (
-                f"A atualização de {obter_nome_execucao(tipo)} "
-                f"já está em andamento."
+                f"A planilha {RELATORIOS[tipo]['nome']} "
+                f"já está sendo atualizada."
             )
         })
 
@@ -1183,13 +908,13 @@ def atualizar(tipo):
 
     if iniciado:
         mensagem = (
-            f"A atualização de {obter_nome_execucao(tipo)} "
+            f"A atualização da planilha {RELATORIOS[tipo]['nome']} "
             f"foi iniciada em segundo plano."
         )
     else:
         mensagem = (
-            f"A atualização de {obter_nome_execucao(tipo)} "
-            f"já está em andamento."
+            f"A planilha {RELATORIOS[tipo]['nome']} "
+            f"já está sendo atualizada."
         )
 
     return render_template(
