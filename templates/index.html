@@ -13,8 +13,12 @@
     <main class="home-container">
 
         <header class="topbar compact-panel">
-            <div class="topbar-left">
-                <img src="{{ url_for('static', filename='logo.png') }}" class="top-logo" alt="Geniale">
+            <div class="brand-main">
+                <img src="{{ url_for('static', filename='grupo_geniale.png') }}" class="brand-logo" alt="Grupo Geniale">
+                <div class="brand-text">
+                    <strong>GRUPO GENIALE</strong>
+                    <span>Central operacional de relatórios</span>
+                </div>
             </div>
 
             <div class="topbar-right">
@@ -40,34 +44,34 @@
         </section>
 
         <p class="hero-subtitle">
-            Selecione o relatório que deseja visualizar ou baixar
+            Selecione o relatório que deseja atualizar, visualizar ou baixar
         </p>
 
         <section class="reports-grid">
 
             {% for relatorio in relatorios %}
 
-            <article class="report-card {{ relatorio.classe }}">
+            <article class="report-card {{ relatorio.classe }}" id="card-{{ relatorio.tipo }}">
 
                 <div class="report-left">
                     {% if relatorio.tipo == "financeiro" %}
-
                     <div class="financeiro-stack">
                         <img src="{{ url_for('static', filename='logo.png') }}" alt="Geniale">
                         <div class="financeiro-plus">+</div>
                         <img src="{{ url_for('static', filename='logo_paniz.png') }}" alt="Paniz">
                     </div>
-
                     {% else %}
-
                     <img src="{{ url_for('static', filename=relatorio.logo) }}" class="report-logo" alt="{{ relatorio.nome }}">
-
                     {% endif %}
                 </div>
 
                 <div class="report-center">
                     <h2>{{ relatorio.nome }}</h2>
                     <span>{{ relatorio.titulo }}</span>
+                    <small>{{ relatorio.descricao }}</small>
+                    {% if relatorio.grupo_atualizacao == "geniale_financeiro" %}
+                    <div class="shared-badge">Base compartilhada · Geniale + Financeiro</div>
+                    {% endif %}
                 </div>
 
                 <div class="report-status">
@@ -78,6 +82,8 @@
                                 ATUALIZANDO
                             {% elif relatorio.status.cor == "erro" %}
                                 ERRO
+                            {% elif relatorio.status.cor == "pendente" %}
+                                PENDENTE
                             {% else %}
                                 ATUALIZADO
                             {% endif %}
@@ -90,7 +96,11 @@
 
                 <div class="report-actions">
                     <button type="button" class="action-btn update-btn" id="update-btn-{{ relatorio.tipo }}" onclick="iniciarAtualizacao('{{ relatorio.tipo }}')">
-                        ↻ Atualizar
+                        {% if relatorio.grupo_atualizacao == "geniale_financeiro" %}
+                            ↻ Atualizar Grupo
+                        {% else %}
+                            ↻ Atualizar
+                        {% endif %}
                     </button>
 
                     {% if relatorio.restrito %}
@@ -115,12 +125,12 @@
                 <div class="schedule-icon">↻</div>
                 <div>
                     <strong>ATUALIZAÇÃO AUTOMÁTICA</strong>
-                    <span>Geniale e Paniz: 08:00 diariamente · Financeiro: 08:00 e 12:00 diariamente</span>
+                    <span>Geniale + Financeiro compartilham a mesma base OMIE · Grupo: 08:00 e 12:00 · Paniz: 08:00</span>
                 </div>
             </div>
 
             <div class="schedule-right">
-                <span>Execução sob demanda disponível pelo botão</span>
+                <span id="home-summary">Status sincronizado com o servidor</span>
             </div>
         </section>
 
@@ -138,40 +148,88 @@
     </main>
 
     <script>
+        const gruposAtualizacao = {
+            geniale: ["geniale", "financeiro"],
+            financeiro: ["geniale", "financeiro"],
+            paniz: ["paniz"]
+        };
+
+        function tiposAfetados(tipo) {
+            return gruposAtualizacao[tipo] || [tipo];
+        }
+
+        function textoBotaoAtualizar(tipo) {
+            if (tipo === "geniale" || tipo === "financeiro") {
+                return "↻ Atualizar Grupo";
+            }
+
+            return "↻ Atualizar";
+        }
+
+        function marcarComoAtualizando(tipo) {
+            tiposAfetados(tipo).forEach((tipoAfetado) => {
+                const botao = document.getElementById(`update-btn-${tipoAfetado}`);
+                const status = document.getElementById(`status-main-${tipoAfetado}`);
+                const pill = document.getElementById(`status-pill-${tipoAfetado}`);
+
+                if (botao) {
+                    botao.disabled = true;
+                    botao.innerHTML = "⏳ Atualizando...";
+                }
+
+                if (status) {
+                    status.innerText = "ATUALIZANDO";
+                }
+
+                if (pill) {
+                    pill.classList.remove("ok", "erro", "pendente");
+                    pill.classList.add("atualizando");
+                }
+            });
+        }
+
         async function iniciarAtualizacao(tipo) {
-            const botao = document.getElementById(`update-btn-${tipo}`);
-            const status = document.getElementById(`status-main-${tipo}`);
-            const pill = document.getElementById(`status-pill-${tipo}`);
-
-            botao.disabled = true;
-            botao.innerHTML = "⏳ Atualizando...";
-
-            if (status) {
-                status.innerText = "ATUALIZANDO";
-            }
-
-            if (pill) {
-                pill.classList.remove("ok", "erro");
-                pill.classList.add("atualizando");
-            }
+            marcarComoAtualizando(tipo);
 
             try {
-                await fetch(`/api/atualizar/${tipo}`);
-                setTimeout(atualizarStatus, 2500);
+                const resposta = await fetch(`/api/atualizar/${tipo}`);
+                const dados = await resposta.json();
+
+                if (!dados.sucesso && dados.mensagem) {
+                    console.log(dados.mensagem);
+                }
+
+                setTimeout(atualizarStatus, 1800);
             } catch (erro) {
                 console.log(erro);
-                botao.disabled = false;
-                botao.innerHTML = "↻ Atualizar";
+
+                tiposAfetados(tipo).forEach((tipoAfetado) => {
+                    const botao = document.getElementById(`update-btn-${tipoAfetado}`);
+
+                    if (botao) {
+                        botao.disabled = false;
+                        botao.innerHTML = textoBotaoAtualizar(tipoAfetado);
+                    }
+                });
             }
+        }
+
+        function textoStatus(cor) {
+            if (cor === "atualizando") return "ATUALIZANDO";
+            if (cor === "erro") return "ERRO";
+            if (cor === "pendente") return "PENDENTE";
+            return "ATUALIZADO";
         }
 
         async function atualizarStatus() {
             try {
                 const resposta = await fetch("/api/status");
                 const dados = await resposta.json();
+                const relatorios = dados.relatorios || {};
+                const resumo = dados.resumo || {};
 
-                Object.keys(dados).forEach((tipo) => {
-                    const item = dados[tipo];
+                Object.keys(relatorios).forEach((tipo) => {
+                    const item = relatorios[tipo];
                     const status = document.getElementById(`status-main-${tipo}`);
                     const data = document.getElementById(`status-date-${tipo}`);
                     const pill = document.getElementById(`status-pill-${tipo}`);
@@ -182,29 +240,32 @@
                     }
 
                     const cor = item.cor || "ok";
-
-                    if (cor === "atualizando") {
-                        status.innerText = "ATUALIZANDO";
-                    } else if (cor === "erro") {
-                        status.innerText = "ERRO";
-                    } else {
-                        status.innerText = "ATUALIZADO";
-                    }
+                    status.innerText = textoStatus(cor);
 
                     if (data && item.ultima) {
                         data.innerText = item.ultima;
                     }
 
                     if (pill) {
-                        pill.classList.remove("ok", "erro", "atualizando");
+                        pill.classList.remove("ok", "erro", "atualizando", "pendente");
                         pill.classList.add(cor);
                     }
 
-                    if (botao && cor !== "atualizando") {
-                        botao.disabled = false;
-                        botao.innerHTML = "↻ Atualizar";
+                    if (botao) {
+                        if (cor === "atualizando") {
+                            botao.disabled = true;
+                            botao.innerHTML = "⏳ Atualizando...";
+                        } else {
+                            botao.disabled = false;
+                            botao.innerHTML = textoBotaoAtualizar(tipo);
+                        }
                     }
                 });
+
+                const homeSummary = document.getElementById("home-summary");
+                if (homeSummary) {
+                    homeSummary.innerText = `${resumo.ativos || 0} execução(ões) ativa(s) · ${resumo.disponiveis || 0}/${resumo.total_relatorios || 0} relatório(s) disponível(is)`;
+                }
             } catch (erro) {
                 console.log(erro);
             }
@@ -221,7 +282,7 @@
         atualizarStatus();
 
         setInterval(atualizarRelogio, 1000);
-        setInterval(atualizarStatus, 15000);
+        setInterval(atualizarStatus, 10000);
     </script>
 
 </body>

@@ -53,38 +53,68 @@ input {
 }
 
 /* ===================================================== */
+/* BRANDING */
+/* ===================================================== */
+
+.brand-main,
+.login-brand-main {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+}
+
+.brand-logo {
+    display: block;
+    width: 76px;
+    max-height: 54px;
+    object-fit: contain;
+}
+
+.brand-text strong,
+.login-brand-main strong {
+    display: block;
+    color: #ffffff;
+    font-size: 26px;
+    line-height: 1;
+    font-weight: 950;
+    letter-spacing: 0.7px;
+}
+
+.brand-text span,
+.login-brand-main span {
+    display: block;
+    margin-top: 6px;
+    color: var(--text-soft);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+/* ===================================================== */
 /* HOME */
 /* ===================================================== */
 
-.home-container {
+.home-container,
+.admin-container {
     width: 100%;
     max-width: 1680px;
     margin: 0 auto;
     padding: 14px 18px 18px;
 }
 
-/* ===================================================== */
-/* TOPBAR */
-/* ===================================================== */
-
-.topbar {
+.topbar,
+.admin-topbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 18px;
     min-height: 74px;
     padding: 10px 18px;
     border-radius: 16px;
 }
 
-.top-logo {
-    display: block;
-    width: 190px;
-    max-height: 58px;
-    object-fit: contain;
-    object-position: left center;
-}
-
-.topbar-right {
+.topbar-right,
+.admin-top-right {
     display: flex;
     align-items: center;
     gap: 14px;
@@ -144,21 +174,23 @@ input {
     gap: 9px;
     color: var(--green);
     font-size: 13px;
-    font-weight: 800;
+    font-weight: 900;
     letter-spacing: 0.3px;
 }
 
-.online-dot {
+.online-dot,
+.status-dot {
     width: 9px;
     height: 9px;
     border-radius: 50%;
-    background: var(--green);
-    box-shadow: 0 0 12px var(--green);
+    background: currentColor;
+    box-shadow: 0 0 10px currentColor;
 }
 
-/* ===================================================== */
-/* TITLE */
-/* ===================================================== */
+.online-dot {
+    color: var(--green);
+    background: var(--green);
+}
 
 .hero-title {
     margin-top: 18px;
@@ -176,7 +208,7 @@ input {
 
 .hero-title h1 {
     font-size: 28px;
-    font-weight: 900;
+    font-weight: 950;
     letter-spacing: 1px;
 }
 
@@ -187,26 +219,22 @@ input {
     font-size: 13px;
 }
 
-/* ===================================================== */
-/* REPORT CARDS */
-/* ===================================================== */
-
 .reports-grid {
     margin-top: 22px;
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr;
     gap: 12px;
 }
 
 .report-card {
     position: relative;
-    overflow: hidden;
+    overflow: visible;
     display: grid;
-    grid-template-columns: 132px minmax(280px, 1fr) 240px 190px;
+    grid-template-columns: 120px minmax(260px, 1fr) 230px 190px;
     align-items: center;
-    gap: 18px;
-    min-height: 112px;
-    padding: 12px 18px;
+    gap: 16px;
+    min-height: 104px;
+    padding: 12px 16px;
     border-radius: 16px;
     border: 1px solid var(--border-soft);
     background: linear-gradient(180deg, rgba(6, 14, 24, 0.94), rgba(4, 8, 16, 0.94));
@@ -238,8 +266,8 @@ input {
 }
 
 .report-logo {
-    width: 104px;
-    max-height: 76px;
+    width: 92px;
+    max-height: 64px;
     object-fit: contain;
 }
 
@@ -252,31 +280,37 @@ input {
 }
 
 .financeiro-stack img {
-    width: 86px;
-    max-height: 37px;
+    width: 78px;
+    max-height: 34px;
     object-fit: contain;
 }
 
 .financeiro-plus {
     line-height: 1;
-    font-size: 16px;
-    font-weight: 900;
+    font-size: 14px;
+    font-weight: 950;
     color: #ffffff;
     opacity: 0.82;
 }
 
 .report-center h2 {
-    font-size: 29px;
+    font-size: 25px;
     line-height: 1;
-    font-weight: 900;
+    font-weight: 950;
     letter-spacing: 0.2px;
 }
 
-.report-center span {
+.report-center span,
+.report-center small {
     display: block;
-    margin-top: 7px;
+    margin-top: 5px;
     color: #d7dce2;
-    font-size: 14px;
+    font-size: 13px;
+}
+
+.report-center small {
+    color: var(--text-muted);
+    font-size: 12px;
 }
 
 .geniale h2 {
@@ -307,7 +341,7 @@ input {
     padding: 7px 12px;
     border-radius: 999px;
     font-size: 12px;
-    font-weight: 900;
+    font-weight: 950;
     letter-spacing: 0.3px;
 }
 
@@ -326,12 +360,9 @@ input {
     color: var(--red);
 }
 
-.status-dot {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: currentColor;
-    box-shadow: 0 0 10px currentColor;
+.status-pill.pendente {
+    background: rgba(44, 160, 255, 0.14);
+    color: var(--blue);
 }
 
 .report-status small {
@@ -341,8 +372,8 @@ input {
 
 .report-status span {
     color: #f2f6fb;
-    font-size: 13px;
-    font-weight: 700;
+    font-size: 12px;
+    font-weight: 750;
 }
 
 .report-actions {
@@ -353,16 +384,16 @@ input {
 
 .action-btn {
     width: 100%;
-    min-height: 39px;
-    padding: 10px 13px;
+    min-height: 38px;
+    padding: 9px 12px;
     border-radius: 11px;
     border: none;
     text-decoration: none;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 13px;
-    font-weight: 900;
+    font-size: 12px;
+    font-weight: 950;
     cursor: pointer;
     transition: transform 0.18s ease, opacity 0.18s ease, filter 0.18s ease;
 }
@@ -387,10 +418,6 @@ input {
     background: rgba(255, 255, 255, 0.035);
     border: 1px solid rgba(255, 255, 255, 0.085);
 }
-
-/* ===================================================== */
-/* SCHEDULE / FOOTER HOME */
-/* ===================================================== */
 
 .schedule-box {
     margin-top: 16px;
@@ -418,7 +445,7 @@ input {
 .schedule-left strong {
     display: block;
     font-size: 14px;
-    font-weight: 900;
+    font-weight: 950;
     letter-spacing: 0.3px;
 }
 
@@ -428,7 +455,8 @@ input {
     font-size: 13px;
 }
 
-.footer-home {
+.footer-home,
+.admin-footer {
     margin-top: 16px;
     display: flex;
     align-items: center;
@@ -458,7 +486,7 @@ input {
     border-radius: 11px;
     text-decoration: none;
     font-size: 13px;
-    font-weight: 900;
+    font-weight: 950;
     white-space: nowrap;
     transition: transform 0.18s ease, filter 0.18s ease;
 }
@@ -479,9 +507,14 @@ input {
     transform: translateY(-1px);
 }
 
-.footer-dev {
+.footer-dev,
+.admin-footer-right {
     color: var(--text-muted);
     font-size: 13px;
+}
+
+.admin-footer-right strong {
+    color: #ffffff;
 }
 
 /* ===================================================== */
@@ -521,33 +554,16 @@ input {
     pointer-events: none;
 }
 
-.login-brand-stack {
+.login-brand-main {
     position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
+    justify-content: center;
     margin-bottom: 20px;
 }
 
-.login-geniale-logo {
-    width: 185px;
-    max-height: 92px;
+.login-group-logo {
+    width: 72px;
+    max-height: 58px;
     object-fit: contain;
-}
-
-.login-paniz-logo {
-    width: 132px;
-    max-height: 52px;
-    object-fit: contain;
-}
-
-.login-plus {
-    font-size: 19px;
-    line-height: 1;
-    font-weight: 900;
-    color: #ffffff;
-    opacity: 0.82;
 }
 
 .login-header {
@@ -576,7 +592,7 @@ input {
 .login-header h1 {
     font-size: 24px;
     line-height: 1;
-    font-weight: 900;
+    font-weight: 950;
     background: linear-gradient(90deg, var(--orange), var(--purple));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -597,7 +613,7 @@ input {
     color: #ffd4da;
     background: rgba(255, 75, 95, 0.12);
     font-size: 13px;
-    font-weight: 800;
+    font-weight: 850;
 }
 
 .login-form {
@@ -611,7 +627,7 @@ input {
 .login-form label {
     color: #e8eef6;
     font-size: 13px;
-    font-weight: 800;
+    font-weight: 850;
 }
 
 .login-form input {
@@ -640,7 +656,7 @@ input {
     color: #ffffff;
     background: linear-gradient(90deg, var(--orange), var(--purple));
     font-size: 14px;
-    font-weight: 900;
+    font-weight: 950;
     cursor: pointer;
     transition: transform 0.18s ease, filter 0.18s ease;
 }
@@ -658,7 +674,7 @@ input {
     text-align: center;
     text-decoration: none;
     font-size: 13px;
-    font-weight: 800;
+    font-weight: 850;
 }
 
 .login-back:hover {
@@ -666,57 +682,41 @@ input {
 }
 
 /* ===================================================== */
-/* ADMIN */
+/* ADMIN REAL */
 /* ===================================================== */
 
-.admin-container {
-    width: 100%;
-    max-width: 1680px;
-    margin: 0 auto;
-    padding: 14px 18px 18px;
-}
-
-.admin-topbar {
+.admin-title-row {
+    margin-top: 18px;
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    align-items: center;
     gap: 18px;
-    min-height: 74px;
-    padding: 10px 18px;
-    border-radius: 16px;
 }
 
-.admin-top-left {
-    display: flex;
-    align-items: center;
-    gap: 14px;
+.admin-title-row h1 {
+    font-size: 26px;
+    font-weight: 950;
+    letter-spacing: 0.6px;
 }
 
-.grupo-logo {
-    display: block;
-    width: 172px;
-    max-height: 58px;
-    object-fit: contain;
-    object-position: left center;
-}
-
-.admin-top-left h1 {
-    font-size: 27px;
-    line-height: 1;
-    font-weight: 900;
-}
-
-.admin-top-left span {
-    display: block;
-    margin-top: 6px;
+.admin-title-row p,
+.panel-header span {
+    margin-top: 5px;
     color: var(--text-soft);
     font-size: 13px;
 }
 
-.admin-top-right {
-    display: flex;
+.admin-sync-pill {
+    display: inline-flex;
     align-items: center;
-    gap: 12px;
+    gap: 9px;
+    padding: 9px 13px;
+    border-radius: 999px;
+    color: var(--green);
+    background: rgba(41, 255, 99, 0.10);
+    border: 1px solid rgba(41, 255, 99, 0.18);
+    font-size: 12px;
+    white-space: nowrap;
 }
 
 .metrics-grid {
@@ -738,7 +738,7 @@ input {
     display: block;
     color: var(--text-soft);
     font-size: 12px;
-    font-weight: 800;
+    font-weight: 850;
     letter-spacing: 0.3px;
 }
 
@@ -747,7 +747,7 @@ input {
     margin-top: 7px;
     font-size: 34px;
     line-height: 1;
-    font-weight: 900;
+    font-weight: 950;
 }
 
 .metric-card small {
@@ -755,6 +755,7 @@ input {
     margin-top: 8px;
     color: var(--text-muted);
     font-size: 12px;
+    word-break: break-word;
 }
 
 .metric-card.green strong {
@@ -777,15 +778,14 @@ input {
     color: var(--cyan);
 }
 
-.admin-bottom-grid {
-    margin-top: 16px;
-    display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(340px, 0.9fr);
-    gap: 14px;
+.metric-card.red strong {
+    color: var(--red);
 }
 
+.admin-table-panel,
 .logs-panel,
 .history-panel {
+    margin-top: 16px;
     padding: 16px;
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.06);
@@ -802,18 +802,70 @@ input {
 
 .panel-header h2 {
     font-size: 18px;
-    font-weight: 900;
+    font-weight: 950;
 }
 
-.clear-btn {
-    padding: 9px 12px;
-    border-radius: 10px;
-    border: none;
-    color: #ff6b6b;
-    background: rgba(255, 0, 0, 0.12);
+.reports-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.reports-table {
+    width: 100%;
+    min-width: 980px;
+    border-collapse: collapse;
+}
+
+.reports-table th,
+.reports-table td {
+    padding: 12px 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    text-align: left;
+    vertical-align: middle;
+    color: var(--text-soft);
+    font-size: 13px;
+}
+
+.reports-table th {
+    color: #ffffff;
     font-size: 12px;
-    font-weight: 900;
+    font-weight: 950;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+}
+
+.reports-table tbody tr {
     cursor: pointer;
+    transition: background 0.18s ease;
+}
+
+.reports-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.025);
+}
+
+.reports-table td strong {
+    display: block;
+    color: #ffffff;
+    font-size: 13px;
+}
+
+.reports-table td small {
+    display: block;
+    margin-top: 4px;
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+.admin-bottom-grid {
+    margin-top: 16px;
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(320px, 0.75fr);
+    gap: 14px;
+}
+
+.logs-panel,
+.history-panel {
+    margin-top: 0;
 }
 
 #system-log {
@@ -832,17 +884,28 @@ input {
 .history-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 9px;
 }
 
-.history-item {
+.history-button {
+    width: 100%;
     display: grid;
     grid-template-columns: 10px 1fr auto auto;
     align-items: center;
     gap: 10px;
     padding: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.045);
     border-radius: 12px;
+    color: inherit;
     background: rgba(255, 255, 255, 0.022);
+    cursor: pointer;
+    text-align: left;
+}
+
+.history-button:hover,
+.history-button.active {
+    border-color: rgba(255, 145, 0, 0.35);
+    background: rgba(255, 145, 0, 0.065);
 }
 
 .history-dot {
@@ -850,37 +913,39 @@ input {
     height: 9px;
     border-radius: 50%;
     background: var(--green);
-    box-shadow: 0 0 10px var(--green);
+    box-shadow: 0 0 10px currentColor;
 }
 
-.history-item span,
-.history-item small {
-    color: var(--text-soft);
-    font-size: 12px;
-}
-
-.history-item strong {
+.history-dot.ok {
     color: var(--green);
+    background: var(--green);
+}
+
+.history-dot.atualizando {
+    color: var(--orange);
+    background: var(--orange);
+}
+
+.history-dot.erro {
+    color: var(--red);
+    background: var(--red);
+}
+
+.history-dot.pendente {
+    color: var(--blue);
+    background: var(--blue);
+}
+
+.history-button span,
+.history-button small,
+.history-empty {
+    color: var(--text-soft);
     font-size: 12px;
 }
 
-.admin-footer {
-    margin-top: 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-    padding: 12px 18px;
-    border-radius: 16px;
-}
-
-.admin-footer-right {
-    color: var(--text-soft);
-    font-size: 13px;
-}
-
-.admin-footer-right strong {
+.history-button strong {
     color: #ffffff;
+    font-size: 12px;
 }
 
 /* ===================================================== */
@@ -920,7 +985,7 @@ input {
 .success-title,
 .error-title {
     font-size: 24px;
-    font-weight: 900;
+    font-weight: 950;
 }
 
 .success-subtitle,
@@ -942,7 +1007,7 @@ input {
     color: #ffffff;
     background: linear-gradient(90deg, var(--orange), var(--orange-light));
     font-size: 13px;
-    font-weight: 900;
+    font-weight: 950;
     cursor: pointer;
 }
 
@@ -950,14 +1015,20 @@ input {
 /* RESPONSIVE */
 /* ===================================================== */
 
+@media (max-width: 1450px) {
+    .reports-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 @media (max-width: 1200px) {
     .report-card {
-        grid-template-columns: 120px 1fr;
+        grid-template-columns: 110px minmax(220px, 1fr) 210px;
     }
 
-    .report-status,
     .report-actions {
-        grid-column: span 1;
+        grid-column: 1 / -1;
+        flex-direction: row;
     }
 
     .metrics-grid {
@@ -979,23 +1050,28 @@ input {
     .admin-topbar,
     .footer-home,
     .schedule-box,
-    .admin-footer {
+    .admin-footer,
+    .admin-title-row {
         flex-direction: column;
         align-items: stretch;
     }
 
     .topbar-right,
     .admin-top-right,
-    .schedule-left {
+    .schedule-left,
+    .brand-main {
         flex-direction: column;
-        align-items: stretch;
+        align-items: center;
+        text-align: center;
     }
 
-    .top-logo,
-    .grupo-logo {
-        width: 150px;
-        margin: 0 auto;
-        object-position: center;
+    .brand-logo {
+        width: 70px;
+    }
+
+    .brand-text strong,
+    .login-brand-main strong {
+        font-size: 22px;
     }
 
     .hero-title h1 {
@@ -1015,6 +1091,11 @@ input {
 
     .report-status {
         align-items: center;
+    }
+
+    .report-actions {
+        grid-column: auto;
+        flex-direction: column;
     }
 
     .metrics-grid {
