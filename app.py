@@ -174,6 +174,76 @@ def obter_ultimo_log(config):
     return "Sem histórico de atualização"
 
 
+
+def extrair_valor_log(log, chave, padrao="-"):
+    if not log or log == "Sem histórico de atualização":
+        return padrao
+
+    prefixo = f"{chave}:"
+
+    for linha in log.splitlines():
+        linha_limpa = linha.strip()
+
+        if linha_limpa.startswith(prefixo):
+            return linha_limpa.replace(prefixo, "", 1).strip() or padrao
+
+    return padrao
+
+
+def obter_metricas_ultimo_log(config):
+    ultimo_log = obter_ultimo_log(config)
+
+    return {
+        "data_hora": extrair_valor_log(ultimo_log, "DATA/HORA", "-"),
+        "status_execucao": extrair_valor_log(ultimo_log, "STATUS", "-"),
+        "inicio": extrair_valor_log(ultimo_log, "INÍCIO", "-"),
+        "fim": extrair_valor_log(ultimo_log, "FIM", "-"),
+        "duracao": extrair_valor_log(ultimo_log, "DURAÇÃO", "-"),
+        "registros": extrair_valor_log(ultimo_log, "REGISTROS OMIE", "0"),
+        "paginas": extrair_valor_log(ultimo_log, "PÁGINAS OMIE", "0"),
+        "modo": extrair_valor_log(ultimo_log, "MODO OMIE", "-"),
+        "workers": extrair_valor_log(ultimo_log, "WORKERS OMIE", str(OMIE_MAX_WORKERS)),
+        "cache": extrair_valor_log(ultimo_log, "CACHE", "-"),
+        "erro": extrair_valor_log(ultimo_log, "ERRO", ""),
+        "ultimo_log": ultimo_log,
+    }
+
+
+def obter_info_job(tipo):
+    with jobs_lock:
+        job = jobs_em_execucao.get(tipo)
+
+    if not job:
+        return {
+            "em_execucao": False,
+            "inicio_execucao": "",
+            "duracao_execucao": "",
+        }
+
+    if isinstance(job, dict):
+        inicio_iso = job.get("inicio", "")
+
+        try:
+            inicio = datetime.fromisoformat(inicio_iso)
+            duracao = formatar_duracao((agora_brasil() - inicio).total_seconds())
+            inicio_texto = inicio.strftime("%d/%m/%Y %H:%M:%S")
+        except Exception:
+            duracao = ""
+            inicio_texto = ""
+
+        return {
+            "em_execucao": True,
+            "inicio_execucao": inicio_texto,
+            "duracao_execucao": duracao,
+        }
+
+    return {
+        "em_execucao": True,
+        "inicio_execucao": "",
+        "duracao_execucao": "",
+    }
+
+
 def registrar_log_atualizacao(
     tipo,
     status,
@@ -220,33 +290,45 @@ def registrar_log_atualizacao(
 
 def obter_status(tipo, config):
     status_interno = ler_arquivo(config["arquivo_status"], "")
+    existe = os.path.exists(config["arquivo_pronto"])
+    metricas = obter_metricas_ultimo_log(config)
+    job = obter_info_job(tipo)
 
-    if status_interno == "atualizando":
+    if job["em_execucao"] or status_interno == "atualizando":
         return {
             "texto": "Atualizando...",
             "cor": "atualizando",
-            "existe": os.path.exists(config["arquivo_pronto"]),
+            "existe": existe,
             "ultima": obter_ultima_atualizacao(config),
-            "ultimo_log": obter_ultimo_log(config),
+            "ultimo_log": metricas["ultimo_log"],
+            "metricas": metricas,
+            **job,
         }
 
     if status_interno.startswith("erro"):
+        erro_status = status_interno.replace("erro:", "", 1).strip()
+
+        if erro_status and not metricas.get("erro"):
+            metricas["erro"] = erro_status
+
         return {
             "texto": "Erro na atualização",
             "cor": "erro",
-            "existe": os.path.exists(config["arquivo_pronto"]),
+            "existe": existe,
             "ultima": obter_ultima_atualizacao(config),
-            "ultimo_log": obter_ultimo_log(config),
+            "ultimo_log": metricas["ultimo_log"],
+            "metricas": metricas,
+            **job,
         }
-
-    existe = os.path.exists(config["arquivo_pronto"])
 
     return {
         "texto": "Disponível para download" if existe else "Ainda não gerada",
         "cor": "ok" if existe else "pendente",
         "existe": existe,
         "ultima": obter_ultima_atualizacao(config),
-        "ultimo_log": obter_ultimo_log(config),
+        "ultimo_log": metricas["ultimo_log"],
+        "metricas": metricas,
+        **job,
     }
 
 
@@ -260,6 +342,67 @@ def montar_relatorios_para_tela():
         lista.append(item)
 
     return lista
+
+
+def montar_status_api():
+    relatorios = {}
+    ativos = 0
+    erros = 0
+    disponiveis = 0
+    ultima_execucao = "-"
+    ultimo_erro = "Nenhum erro recente"
+
+    for tipo, config in RELATORIOS.items():
+        status = obter_status(tipo, config)
+        metricas = status.get("metricas", {})
+
+        if status.get("em_execucao"):
+            ativos += 1
+
+        if status.get("cor") == "erro":
+            erros += 1
+            ultimo_erro = metricas.get("erro") or "Erro na última execução"
+
+        if status.get("existe"):
+            disponiveis += 1
+
+        if metricas.get("data_hora") and metricas.get("data_hora") != "-":
+            ultima_execucao = metricas.get("data_hora")
+
+        relatorios[tipo] = {
+            "tipo": tipo,
+            "nome": config["nome"],
+            "titulo": config["titulo"],
+            "descricao": config["descricao"],
+            "restrito": config["restrito"],
+            "classe": config["classe"],
+            "logo": config.get("logo"),
+            "texto": status["texto"],
+            "cor": status["cor"],
+            "existe": status["existe"],
+            "ultima": status["ultima"],
+            "em_execucao": status.get("em_execucao", False),
+            "inicio_execucao": status.get("inicio_execucao", ""),
+            "duracao_execucao": status.get("duracao_execucao", ""),
+            "ultimo_log": status.get("ultimo_log", "Sem histórico de atualização"),
+            "metricas": metricas,
+        }
+
+    resumo = {
+        "total_relatorios": len(RELATORIOS),
+        "ativos": ativos,
+        "erros": erros,
+        "disponiveis": disponiveis,
+        "pendentes": len(RELATORIOS) - disponiveis,
+        "ultima_execucao": ultima_execucao,
+        "ultimo_erro": ultimo_erro,
+        "agora": agora_formatado(),
+    }
+
+    return {
+        "resumo": resumo,
+        "relatorios": relatorios,
+    }
 
 
 def buscar_pagina_omie(
@@ -717,7 +860,10 @@ def iniciar_atualizacao_background(tipo):
         if jobs_em_execucao.get(tipo):
             return False
 
-        jobs_em_execucao[tipo] = True
+        jobs_em_execucao[tipo] = {
+            "ativo": True,
+            "inicio": agora_brasil().isoformat(),
+        }
 
     thread = Thread(
         target=executar_atualizacao_background,
@@ -773,7 +919,7 @@ def home():
 
 @app.route("/api/status")
 def api_status():
-    return jsonify(montar_relatorios_para_tela())
+    return jsonify(montar_status_api())
 
 
 @app.route("/api/atualizar/<tipo>")
